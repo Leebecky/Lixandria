@@ -1,2 +1,2 @@
 # Lixandria
- An OCR Driven Approah to Personal Book Catalogue Applications
+ An OCR Driven Approach to Personal Book Catalogue Applications
