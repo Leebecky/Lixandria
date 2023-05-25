@@ -1,11 +1,17 @@
-# Import Libraries
+from flask import Flask, request, jsonify
+from imutils.object_detection import non_max_suppression
 import cv2
 import numpy as np
+import base64
+import json
 import math
-from imutils.object_detection import non_max_suppression
 from paddleocr import PaddleOCR
 
+# Application Initialisation
+app = Flask(__name__)
 east_model_path = "east_text_detection.pb"
+
+# Spine Segmentation & OCR Functions
 
 
 def preprocessing(img):
@@ -47,52 +53,8 @@ def get_hough_lines(img, ori):
     return lines
 
 
-def sort_hough_lines(img, hough_lines):
-    # x_sort = []
-    y_sort = []
-    y_intersect = []
-    # left_x = []
-    # right_x = []
-
-    for i in range(0, len(hough_lines)):
-        x1 = hough_lines[i][0][0]
-        x2 = hough_lines[i][1][0]
-        y1 = hough_lines[i][0][1]
-        y2 = hough_lines[i][1][1]
-
-        denom = 1 if (x2 - x1) == 0 else (x2 - x1)
-        m = (y2 - y1) / denom
-
-        # y = mx + c
-        c = y1 - (m * x1)
-
-        # if m != 0:
-        # x_point = (int(img.shape[0] / 2) - c) / m
-        # left = (int(img.shape[0]) - c) / m if m < 0 else (0 - c) / m
-        # right = (0 - c) / m if m < 0 else (int(img.shape[0]) - c) / m
-
-        # x_sort.append(x_point)
-        # left_x.append([left, img.shape[0]])
-        # right_x.append([right, 0])
-
-        # Determine y at midpoint
-        y_point = (m * int(img.shape[1] / 2)) + c
-        y2 = (m * int(img.shape[1])) + c
-        y_sort.append(y_point)
-        y_intersect.append({"y1": int(c), "y2": int(y2)})
-
-    # sort_index = np.argsort(x_sort)
-    sort_index = np.argsort(y_sort)
-    sorted = np.array(hough_lines)[sort_index]
-    sort_y = np.array(y_sort)[sort_index]
-    sort_intersect = np.array(y_intersect)[sort_index]
-    # sort_left = np.array(left_x)[sort_index]
-    # sort_right = np.array(right_x)[sort_index]
-    return sorted, sort_y, sort_intersect
-    # return sorted, sort_left, sort_right
-
-
 def get_hough_coords(hough_lines):
+    # Convert hough lines into coordinates
     hough_points = []
     if hough_lines is not None:
         for i in range(0, len(hough_lines)):
@@ -108,21 +70,47 @@ def get_hough_coords(hough_lines):
     return hough_points
 
 
-# def draw_hough_lines(img, hough_lines):
-#     # if hough_lines is not None:
-#     for i in range(0, len(hough_lines)):
-#         cv2.line(img, hough_lines[i][0], hough_lines[i][1], (0, 0, 255), 3,
-#                  cv2.LINE_AA)
-#     return img
+def sort_hough_lines(img, hough_coords):
+    # Sort the set of hough lines from top to bottom
+    y_sort = []
+    y_intersect = []
 
-def east(img, resize=(640,640)):
+    # For each set of hough lines, calculate the straight line equation and determine the y-value at the edges of the image
+    for i in range(0, len(hough_coords)):
+        x1 = hough_coords[i][0][0]
+        x2 = hough_coords[i][1][0]
+        y1 = hough_coords[i][0][1]
+        y2 = hough_coords[i][1][1]
+
+        denom = 1 if (x2 - x1) == 0 else (x2 - x1)
+        m = (y2 - y1) / denom
+
+        # Straight Line Equation: y = mx + c
+        c = y1 - (m * x1)
+
+        # Determine y at midpoint
+        y_point = (m * int(img.shape[1] / 2)) + c
+        y2 = (m * int(img.shape[1])) + c
+        y_sort.append(y_point)
+        y_intersect.append({"y1": int(c), "y2": int(y2)})
+
+    sort_index = np.argsort(y_sort)
+    sorted = np.array(hough_coords)[sort_index]
+    sort_y = np.array(y_sort)[sort_index]
+    sort_intersect = np.array(y_intersect)[sort_index]
+    return sorted, sort_y, sort_intersect
+
+
+def east(img, resize=(640, 640)):
+    # East Text Detector. Code referenced from (Rosebrock, 2018): https://pyimagesearch.com/2018/08/20/opencv-text-detection-east-text-detector/
+
     (origH, origW) = img.shape[:2]
     (newW, newH) = resize
     rW = origW / float(newW)
     rH = origH / float(newH)
     resized = cv2.resize(img, (newW, newH))
     (H, W) = resized.shape[:2]
-    
+
     # construct a blob from the image to forward pass it to EAST model
     blob = cv2.dnn.blobFromImage(resized,
                                  1.0, (W, H), (123.68, 116.78, 103.94),
@@ -152,15 +140,15 @@ def east(img, resize=(640,640)):
         endX = int(endX * rW)
         endY = int(endY * rH)
 
-        #extract the region of interest
-        r = img[startY:endY, startX:endX]
+        #save the regions of interest
         results.append(((startX, startY, endX, endY, idx)))
 
     return results
 
-
-# Returns a bounding box and probability score if it is more than minimum confidence
 def predictions(prob_score, geo):
+    # Returns a bounding box and probability score if it is more than minimum confidence
+    # Code referenced from (Rosebrock, 2018): https://pyimagesearch.com/2018/08/20/opencv-text-detection-east-text-detector/
+
     (numR, numC) = prob_score.shape[2:4]
     boxes = []
     confidence_val = []
@@ -203,39 +191,13 @@ def predictions(prob_score, geo):
     return (boxes, confidence_val)
 
 
-def main(file_path):
-    # Read Image
-    shelf_image = cv2.imread(file_path)
-
-    # Pre Processing:
-    img_resized, img_gray = preprocessing(shelf_image)
-
-    # Canny Edge Detection
-    img_canny = cannyEdge(img_gray)
-
-    # Hough Lines
-    disp = img_resized.copy()
-    disp = cv2.rotate(disp, cv2.ROTATE_90_COUNTERCLOCKWISE)
-    img_canny = cv2.rotate(img_canny, cv2.ROTATE_90_COUNTERCLOCKWISE)
-    hough_lines = get_hough_lines(img_canny, disp)
-    coords = get_hough_coords(hough_lines)
-    east_boxes = east(disp)
-
-    # Image Segmentation
-    ocr_reader = PaddleOCR(use_angle_cls=True, lang='en')
-
-    book_spine_set = east_meets_hough(east_boxes, coords, disp)
-    spine_segment(book_spine_set, disp, ocr_reader)
-
-
-
 def east_meets_hough(east, coords, img):
     # Sort Hough Coordinates
     sorted_coords, sorted_y, sorted_intersect = sort_hough_lines(img, coords)
     book_spine_set = []
     partial_segment = []
-    # identified_text = []
 
+    # Identify spine boundaries based on hough lines and detected text
     for i in range(0, len(sorted_coords)):
         if (i == 0):  # Line 0 as bottom line
             get_spine_boundaries(east, img, sorted_y,
@@ -247,9 +209,7 @@ def east_meets_hough(east, coords, img):
                              sorted_intersect)
 
     for i in range(0, len(partial_segment)):
-        # new_img = img.copy()
         coord_index = partial_segment[i]["index"]
-        # top_line = partial_segment[i]["top_value"]
         bottom_target = partial_segment[i]["bottom_target"]
 
         top_left = partial_segment[i]["top_left"]
@@ -257,68 +217,37 @@ def east_meets_hough(east, coords, img):
         bottom_left = partial_segment[i]["bottom_left"]
         bottom_right = partial_segment[i]["bottom_right"]
 
-        # cv2.line(new_img, (0, top_line), (img.shape[1], top_line), (0, 255, 0),
-        #          3, cv2.LINE_AA)
         for idx in range(coord_index + 1, len(sorted_y)):
             bottom_line = int(sorted_y[idx])
             isWithinBottom = bottom_target < bottom_line
 
-            # relevant_box = [
-            #     x for x in identified_text if x["index"] == coord_index
-            # ]
-            # for val in relevant_box:
-            #     start_X = val["start_x"]
-            #     start_Y = val["start_y"]
-            #     end_X = val["end_x"]
-            #     end_Y = val["end_y"]
-            #     cv2.rectangle(new_img, (start_X, start_Y), (end_X, end_Y),
-            #                   (0, 0, 255), 2)
-
-            # cv2.line(new_img, (0, bottom_line), (img.shape[1], bottom_line),
-            #          (255, 255, 0), 3, cv2.LINE_AA)
             if (isWithinBottom):
-                # cv2.line(new_img, (0, bottom_line),
-                #          (img.shape[1], bottom_line), (255, 0, 255), 3,
-                #          cv2.LINE_AA)
-                if ((top_left, top_right, bottom_right, bottom_left) not in book_spine_set):
-                # if ((top_line, bottom_line) not in book_spine_set):
-                    # book_spine_set.append((top_line, bottom_line))
-                    book_spine_set.append((top_left, top_right, bottom_right, bottom_left))
-                # break
+                if ((top_left, top_right, bottom_right, bottom_left)
+                        not in book_spine_set):
 
+                    book_spine_set.append(
+                        (top_left, top_right, bottom_right, bottom_left))
     return book_spine_set
 
 
 def get_spine_boundaries(east, img, sorted_y, book_spine_set, i,
                          partial_segment, sorted_intersect):
-    # x = img.copy()
 
-    # # determining top/bottom lines
-    # top_left = (0, 0) if i == -1 else sorted_coords[i][0]
-    # top_right = (img.shape[1], 0) if i == -1 else sorted_coords[i][1]
-    # bottom_left = sorted_coords[0][0] if i == -1 else (
-    #     0, img.shape[0]) if i == (len(sorted_coords) -
-    #                               1) else sorted_coords[i + 1][0]
-    # bottom_right = sorted_coords[0][1] if i == -1 else (
-    #     img.shape[1], img.shape[0]) if i == (len(sorted_coords) -
-    #                                          1) else sorted_coords[i + 1][1]
-    # cv2.line(x, top_left, top_right, (0, 255, 0), 3, cv2.LINE_AA)
-    # cv2.line(x, bottom_left, bottom_right, (255, 0, 0), 3, cv2.LINE_AA)
-    
-    # # Determine if text box within boundaries
-    # # yBottom < yBox < yTop
+    # Determine if text box within boundaries
+    # yBottom < yBox < yTop
     y_top = 0 if i == -1 else int(sorted_y[i])
     y_bottom = sorted_y[0] if i == -1 else img.shape[0] if i == (
         len(sorted_y) - 1) else int(sorted_y[i + 1])
-    
-    # Intersection Calculation
+
+    # y-intersect Calculation
     int_top_left = 0 if i == -1 else sorted_intersect[i]["y1"]
     int_top_right = 0 if i == -1 else sorted_intersect[i]["y2"]
-    int_bottom_left = sorted_intersect[0]["y1"] if i == -1 else img.shape[0] if i == (len(sorted_intersect) - 1) else sorted_intersect[i + 1]["y1"]
-    int_bottom_right = sorted_intersect[0]["y2"] if i == -1 else img.shape[0] if i == (len(sorted_intersect) - 1) else sorted_intersect[i + 1]["y2"]
-
-    # y_top = int_top_left if int_top_left < int_top_right else int_top_right
-    # y_bottom = int_bottom_left if int_bottom_left > int_bottom_right else int_bottom_right
+    int_bottom_left = sorted_intersect[0]["y1"] if i == -1 else img.shape[
+        1] if i == (len(sorted_intersect) - 1) else sorted_intersect[i +
+                                                                     1]["y1"]
+    int_bottom_right = sorted_intersect[0]["y2"] if i == -1 else img.shape[
+        1] if i == (len(sorted_intersect) - 1) else sorted_intersect[i +
+                                                                     1]["y2"]
 
     for ((start_X, start_Y, end_X, end_Y, idx)) in east:
 
@@ -343,70 +272,126 @@ def get_spine_boundaries(east, img, sorted_y, book_spine_set, i,
                     "bottom_right": int_bottom_right,
                     "index": i
                 })
-                # identified_text.append({
-                #     "start_x": start_X,
-                #     "start_y": start_Y,
-                #     "end_x": end_X,
-                #     "end_y": end_Y,
-                #     "index": i
-                # })
-            
+                
         if (isWithinTop and isWithinBottom):
-            if ((int_top_left, int_top_right, int_bottom_right, int_bottom_left) not in book_spine_set):
-            # if ((int(y_top), int(y_bottom)) not in book_spine_set):
-                # book_spine_set.append((int(y_top), int(y_bottom)))
-                book_spine_set.append((int_top_left, int_top_right, int_bottom_right, int_bottom_left))
+            if ((int_top_left, int_top_right, int_bottom_right,
+                 int_bottom_left) not in book_spine_set):
+                book_spine_set.append((int_top_left, int_top_right,
+                                       int_bottom_right, int_bottom_left))
 
-            # cv2.rectangle(x, (start_X, start_Y), (end_X, end_Y), (0, 0, 255),
-            #               2)
 
 def spine_segment(book_spine_set, disp, ocr_reader):
-    # we can create a mask with epipolar points and AND with the original image
-   
+
     img_width = disp.shape[1]
+    output_set = []
 
     for x in range(0, len(book_spine_set)):
-        # spine_segment = disp.copy()
-        # spine_segment = spine_segment[
-            # book_spine_set[x][0]:book_spine_set[x][1], :]
-
-        # spine = cv2.cvtColor(spine_segment, cv2.COLOR_RGB2GRAY)
         spine_coords = book_spine_set[x]
 
-        mask = np.zeros(disp.shape,dtype=np.uint8)
-        pts = np.array([(0,spine_coords[0]), (img_width, spine_coords[1]), (img_width, spine_coords[2]), (0, spine_coords[3])], np.int32)
-        cv2.fillPoly(mask, [pts], (255,255,255))
+        # Crop image
+        mask = np.zeros(disp.shape, dtype=np.uint8)
+        pts = np.array([(0, spine_coords[0]), (img_width, spine_coords[1]),
+                        (img_width, spine_coords[2]), (0, spine_coords[3])],
+                       np.int32)
+        cv2.fillPoly(mask, [pts], (255, 255, 255))
 
-
-        filt_img = disp&mask
+        filt_img = disp & mask
         spine_segment = filt_img.copy()
 
-        highest_point = spine_coords[0] if spine_coords[0] < spine_coords[1] else spine_coords[1]
-        lower_point = spine_coords[2] if spine_coords[2] > spine_coords[3] else spine_coords[3]
+        highest_point = spine_coords[
+            0] if spine_coords[0] < spine_coords[1] else spine_coords[1]
+        lower_point = spine_coords[
+            2] if spine_coords[2] > spine_coords[3] else spine_coords[3]
 
         spine_segment = spine_segment[highest_point:lower_point, :]
         spine_segment = resizeImage(spine_segment, 150)
-        results = ocr_reader.ocr(spine_segment, cls=True)   
-        
-        # cv2.imshow('mask', mask)
-        cv2.imshow("Segment", spine_segment)
-        print("OCR: ", results)
-        # print("OCR: ", results[0][0][0][1])
-        cv2.waitKey(0)
+        results = ocr_reader.ocr(spine_segment, cls=True)
+
+        # Encode image to return
+        __, img_encode = cv2.imencode(".png", spine_segment)
+        jpg_as_text = base64.b64encode(img_encode).decode()
+
+        spine_text = evaluate_ocr_output(results)
+
+        if (spine_text != ""):
+            # Preparing API Response
+            json_data = {'img': jpg_as_text, "spine_text": spine_text}
+            with open('./0.json', 'w') as outfile:
+                json.dump(json_data, outfile, ensure_ascii=False, indent=4)
+
+            output_set.append(json_data)
+
+    return output_set
 
 
-# Run
-# main("Images/upright4.webp")
-img_set = ["upright3.jpeg"]
-#  , "upright2.jpeg", "upright3.jpeg", "upright4.webp"]
-# , "sideways.jpeg", "mixed.jpeg"
-for file in img_set:
-    path = "Test Images/" + file
-    main(path)
+def evaluate_ocr_output(ocr):
+    [ocr_output] = ocr
+    extracted_values = []
 
-    #// TODO: Arrange output of OCR text from left to right. Try to group those of similar x values
-    #// TODO: Add new cropping method to API
-    #// TODO: Complete the damn API
-    # TODO: Look into substituting EAST with Paddle (Low Priority)
-    # TODO: Add support for mixed orientation (Low Priority)
-    # TODO: Add support for sideways orientation (High Priority)
+    # Extract Top Left Bounding Box and Text
+    for i in range(0, len(ocr_output)):
+        if (ocr_output[i][1][1] >= 0.8):  # filter low confidence predictions
+            extracted_values.append([ocr_output[i][0][0], ocr_output[i][1][0]])
+
+    # Sort by x-axis
+    extracted_values.sort()
+
+    # Sort based on y-axis if x-axis values are similar
+    for i in range(1, len(extracted_values)):
+        prev = extracted_values[i - 1][0]
+        current = extracted_values[i][0]
+
+        if (prev[0] > current[0] - 50):
+            if (prev[1] > current[1]):
+                extracted_values[i - 1], extracted_values[
+                    i] = extracted_values[i], extracted_values[i - 1]
+
+    # Extract the sorted spine text
+    spine_text = " ".join(text[1] for text in extracted_values)
+
+    return spine_text
+
+
+# API Code
+@app.route("/Lixandria_API", methods=["GET"])
+def get():
+    return "<p>GET request unavailable</p>"
+
+
+@app.route("/Lixandria_API", methods=["POST"])
+def SpineOCR():
+    # Receive and Read Image
+    shelf_image = request.files.get("image")
+    image_buffer = np.fromfile(shelf_image, np.uint8)
+    img = cv2.imdecode(image_buffer, flags=cv2.IMREAD_COLOR)
+
+    # Process Image
+
+    # Pre Processing:
+    img_resized, img_gray = preprocessing(img)
+
+    # Canny Edge Detection
+    img_canny = cannyEdge(img_gray)
+
+    # Hough Lines
+    disp = img_resized.copy()
+    disp = cv2.rotate(disp, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    img_canny = cv2.rotate(img_canny, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    hough_lines = get_hough_lines(img_canny, disp)
+    coords = get_hough_coords(hough_lines)
+    east_boxes = east(disp)
+
+    # Image Segmentation
+    ocr_reader = PaddleOCR(use_angle_cls=True,
+                           lang='en',
+                           ocr_version="PP-OCRv3")
+    # , cls_model_dir="en_PP-OCRv3_rec_train"
+    book_spine_set = east_meets_hough(east_boxes, coords, disp)
+    api_response = spine_segment(book_spine_set, disp, ocr_reader)
+
+    return jsonify(api_response)
+
+
+# Run the API
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000)
