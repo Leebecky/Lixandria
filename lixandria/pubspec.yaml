@@ -31,10 +31,48 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Database - Realm
+  realm: ^1.0.3
+
+  # Improved management of InheritanceWidget
+  provider: ^6.0.5
+
+  # For HTTP requests
+  html: ^0.15.3
+
+  # Google Packages
+  googleapis: ^11.2.0
+  google_fonts: ^4.0.4
+
+  # Easy toasts
+  fluttertoast: ^8.2.2
+
+  # Camera
+  camera: ^0.10.5+2
+
+  # Barcode Scanner
+  flutter_barcode_scanner: ^2.0.0
+
+  # Generate app icon
+  # flutter_launcher_icons: "^0.13.1"
+
+  # flutter_app_name: ^0.1.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
+
+# Generate app icons
+# flutter_launcher_icons:
+#   android: true
+#   ios: true
+#   image_path: "assets/Lixandria3.png"
+#   adaptive_icon_background: "#5F8D4E"
+#   adaptive_icon_foreground: "assets/Lixandria3.png"
+#   min_sdk_android: 22 # android min sdk min:16, default 21
+  
+# flutter_app_name:
+#   name: "Lixandria"
 
 dev_dependencies:
   flutter_test:
@@ -59,7 +97,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
+  assets:
+    - assets/Karla/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
