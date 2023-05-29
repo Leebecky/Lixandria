@@ -1,7 +1,9 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:lixandria/pages/add_catalogue.dart';
 import 'package:lixandria/pages/manual_add.dart';
+import 'package:lixandria/pages/settings.dart';
 import 'package:realm/realm.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'pages/home.dart';
@@ -42,7 +44,7 @@ class _AppScaffoldState extends State<AppScaffold> {
   static const List<Widget> _appPages = <Widget>[
     Text("Statistics"),
     Home(),
-    Text("Settings")
+    Settings()
   ];
 
   void _onItemTapped(int index) {
@@ -66,7 +68,7 @@ class _AppScaffoldState extends State<AppScaffold> {
               shape: const CircleBorder(),
               child: const Icon(Icons.add_rounded),
               onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const ManualAdd()))
+                  MaterialPageRoute(builder: (context) => const AddCatalogue()))
               // ScaffoldMessenger.of(context).showSnackBar(
               //     const SnackBar(content: Text("Welcome to Lixandria")));
               )

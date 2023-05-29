@@ -25,5 +25,4 @@ class $Book {
   late String? coverImage;
   late List<$Tag> tags = [];
   late String? isbnCode;
-  late String? genre;
 }

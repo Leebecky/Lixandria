@@ -171,7 +171,6 @@ class Book extends $Book with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('tags', RealmPropertyType.object,
           linkTarget: 'Tag', collectionType: RealmCollectionType.list),
       SchemaProperty('isbnCode', RealmPropertyType.string, optional: true),
-      SchemaProperty('genre', RealmPropertyType.string, optional: true),
     ]);
   }
 }
