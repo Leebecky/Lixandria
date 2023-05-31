@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lixandria/widgets/customElevatedButton.dart';
 
-import 'manual_add.dart';
+import '../../constants.dart';
+import 'add_manual.dart';
 
 class AddCatalogue extends StatefulWidget {
   const AddCatalogue({super.key});
@@ -32,8 +33,10 @@ class _AddCatalogueState extends State<AddCatalogue> {
                 btnSize: "medium",
                 specificWidth: MediaQuery.of(context).size.width / 1.5,
                 onPressed: () {
-              Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const ManualAdd()));
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => const AddManual(
+                        mode: MODE_NEW,
+                      )));
             }),
             CustomElevatedButton("Scan Barcode",
                 btnSize: "medium",

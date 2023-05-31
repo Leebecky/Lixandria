@@ -8,7 +8,7 @@ part of 'book.dart';
 
 class Book extends $Book with RealmEntity, RealmObjectBase, RealmObject {
   Book(
-    ObjectId bookId, {
+    String bookId, {
     String? title,
     String? subTitle,
     String? author,
@@ -22,7 +22,6 @@ class Book extends $Book with RealmEntity, RealmObjectBase, RealmObject {
     int? seriesNumber,
     String? coverImage,
     String? isbnCode,
-    String? genre,
     Iterable<Tag> tags = const [],
   }) {
     RealmObjectBase.set(this, 'bookId', bookId);
@@ -39,17 +38,15 @@ class Book extends $Book with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'seriesNumber', seriesNumber);
     RealmObjectBase.set(this, 'coverImage', coverImage);
     RealmObjectBase.set(this, 'isbnCode', isbnCode);
-    RealmObjectBase.set(this, 'genre', genre);
     RealmObjectBase.set<RealmList<Tag>>(this, 'tags', RealmList<Tag>(tags));
   }
 
   Book._();
 
   @override
-  ObjectId get bookId =>
-      RealmObjectBase.get<ObjectId>(this, 'bookId') as ObjectId;
+  String get bookId => RealmObjectBase.get<String>(this, 'bookId') as String;
   @override
-  set bookId(ObjectId value) => RealmObjectBase.set(this, 'bookId', value);
+  set bookId(String value) => RealmObjectBase.set(this, 'bookId', value);
 
   @override
   String? get title => RealmObjectBase.get<String>(this, 'title') as String?;
@@ -138,11 +135,6 @@ class Book extends $Book with RealmEntity, RealmObjectBase, RealmObject {
   set isbnCode(String? value) => RealmObjectBase.set(this, 'isbnCode', value);
 
   @override
-  String? get genre => RealmObjectBase.get<String>(this, 'genre') as String?;
-  @override
-  set genre(String? value) => RealmObjectBase.set(this, 'genre', value);
-
-  @override
   Stream<RealmObjectChanges<Book>> get changes =>
       RealmObjectBase.getChanges<Book>(this);
 
@@ -154,7 +146,7 @@ class Book extends $Book with RealmEntity, RealmObjectBase, RealmObject {
   static SchemaObject _initSchema() {
     RealmObjectBase.registerFactory(Book._);
     return const SchemaObject(ObjectType.realmObject, Book, 'Book', [
-      SchemaProperty('bookId', RealmPropertyType.objectid, primaryKey: true),
+      SchemaProperty('bookId', RealmPropertyType.string, primaryKey: true),
       SchemaProperty('title', RealmPropertyType.string, optional: true),
       SchemaProperty('subTitle', RealmPropertyType.string, optional: true),
       SchemaProperty('author', RealmPropertyType.string, optional: true),

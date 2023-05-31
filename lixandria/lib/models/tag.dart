@@ -8,6 +8,6 @@ part 'tag.g.dart';
 @RealmModel()
 class $Tag {
   @PrimaryKey()
-  late ObjectId tagId;
+  late String tagId;
   late String? tagDesc;
 }

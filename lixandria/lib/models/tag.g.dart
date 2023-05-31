@@ -8,7 +8,7 @@ part of 'tag.dart';
 
 class Tag extends $Tag with RealmEntity, RealmObjectBase, RealmObject {
   Tag(
-    ObjectId tagId, {
+    String tagId, {
     String? tagDesc,
   }) {
     RealmObjectBase.set(this, 'tagId', tagId);
@@ -18,10 +18,9 @@ class Tag extends $Tag with RealmEntity, RealmObjectBase, RealmObject {
   Tag._();
 
   @override
-  ObjectId get tagId =>
-      RealmObjectBase.get<ObjectId>(this, 'tagId') as ObjectId;
+  String get tagId => RealmObjectBase.get<String>(this, 'tagId') as String;
   @override
-  set tagId(ObjectId value) => RealmObjectBase.set(this, 'tagId', value);
+  set tagId(String value) => RealmObjectBase.set(this, 'tagId', value);
 
   @override
   String? get tagDesc =>
@@ -41,7 +40,7 @@ class Tag extends $Tag with RealmEntity, RealmObjectBase, RealmObject {
   static SchemaObject _initSchema() {
     RealmObjectBase.registerFactory(Tag._);
     return const SchemaObject(ObjectType.realmObject, Tag, 'Tag', [
-      SchemaProperty('tagId', RealmPropertyType.objectid, primaryKey: true),
+      SchemaProperty('tagId', RealmPropertyType.string, primaryKey: true),
       SchemaProperty('tagDesc', RealmPropertyType.string, optional: true),
     ]);
   }

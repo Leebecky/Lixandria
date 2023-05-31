@@ -9,7 +9,7 @@ part 'book.g.dart';
 @RealmModel()
 class $Book {
   @PrimaryKey()
-  late ObjectId bookId;
+  late String bookId;
 
   late String? title;
   late String? subTitle;

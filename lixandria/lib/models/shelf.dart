@@ -9,7 +9,7 @@ part 'shelf.g.dart';
 @RealmModel()
 class _Shelf {
   @PrimaryKey()
-  late ObjectId shelfId;
+  late String shelfId;
 
   late String? shelfName;
   late List<$Book> booksOnShelf = [];

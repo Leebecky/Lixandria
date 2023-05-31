@@ -8,7 +8,7 @@ part of 'shelf.dart';
 
 class Shelf extends _Shelf with RealmEntity, RealmObjectBase, RealmObject {
   Shelf(
-    ObjectId shelfId, {
+    String shelfId, {
     String? shelfName,
     Iterable<Book> booksOnShelf = const [],
   }) {
@@ -21,10 +21,9 @@ class Shelf extends _Shelf with RealmEntity, RealmObjectBase, RealmObject {
   Shelf._();
 
   @override
-  ObjectId get shelfId =>
-      RealmObjectBase.get<ObjectId>(this, 'shelfId') as ObjectId;
+  String get shelfId => RealmObjectBase.get<String>(this, 'shelfId') as String;
   @override
-  set shelfId(ObjectId value) => RealmObjectBase.set(this, 'shelfId', value);
+  set shelfId(String value) => RealmObjectBase.set(this, 'shelfId', value);
 
   @override
   String? get shelfName =>
@@ -51,7 +50,7 @@ class Shelf extends _Shelf with RealmEntity, RealmObjectBase, RealmObject {
   static SchemaObject _initSchema() {
     RealmObjectBase.registerFactory(Shelf._);
     return const SchemaObject(ObjectType.realmObject, Shelf, 'Shelf', [
-      SchemaProperty('shelfId', RealmPropertyType.objectid, primaryKey: true),
+      SchemaProperty('shelfId', RealmPropertyType.string, primaryKey: true),
       SchemaProperty('shelfName', RealmPropertyType.string, optional: true),
       SchemaProperty('booksOnShelf', RealmPropertyType.object,
           linkTarget: 'Book', collectionType: RealmCollectionType.list),
