@@ -15,6 +15,24 @@ class _SettingsState extends State<Settings> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
+          CustomElevatedButton("Manage Shelves",
+              btnSize: "medium",
+              specificWidth: MediaQuery.of(context).size.width / 1.5,
+              onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text("Exporting database to CSV..."),
+              showCloseIcon: true,
+            ));
+          }),
+          CustomElevatedButton("Manage Tags",
+              btnSize: "medium",
+              specificWidth: MediaQuery.of(context).size.width / 1.5,
+              onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text("Exporting database to CSV..."),
+              showCloseIcon: true,
+            ));
+          }),
           CustomElevatedButton("Export to CSV",
               btnSize: "medium",
               specificWidth: MediaQuery.of(context).size.width / 1.5,

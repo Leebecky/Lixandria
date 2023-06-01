@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:lixandria/models/shelf.dart';
 import 'package:lixandria/pages/settings/settings.dart';

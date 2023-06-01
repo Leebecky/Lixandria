@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:realm/realm.dart';
 
 import 'book.dart';
@@ -105,5 +107,32 @@ class ModelHelper {
     } catch (e) {
       return false;
     }
+  }
+
+  static List<Book> decodeBookFromJson(String apiResponse) {
+    Map<String, dynamic> json = jsonDecode(apiResponse);
+    List<Book> bookList = [];
+    for (var i = 0; i < json["totalItems"]; i++) {
+      var bookData = json["items"][i]["volumeInfo"];
+
+      Book book = Book(ObjectId().toString(),
+          title: bookData["title"],
+          subTitle: "",
+          author: (bookData["authors"] as List).join(","),
+          bookRating: 3,
+          coverImage: bookData["imageLinks"]["thumbnail"],
+          description: bookData["description"],
+          isRead: false,
+          isbnCode: bookData["industryIdentifiers"][1]["identifier"],
+          location: "",
+          ownershipStatus: "Owned",
+          publisher: bookData["publisher"],
+          seriesNumber: 0,
+          tags: [], // TODO: Handle Tags. Cross check existence in db, if !EXIST, then create new tag.
+          userNotes: "");
+      bookList.add(book);
+    }
+
+    return bookList;
   }
 }

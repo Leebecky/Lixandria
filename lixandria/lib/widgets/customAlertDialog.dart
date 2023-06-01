@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../models/model_helper.dart';
-
 CustomAlertDialog(BuildContext context, String hdrMsg, String bodyMsg,
     {confirmOnPressed}) {
   return AlertDialog(

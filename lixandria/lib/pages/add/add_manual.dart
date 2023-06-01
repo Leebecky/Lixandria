@@ -38,12 +38,15 @@ class _AddManualState extends State<AddManual> {
   final _txtIsbnCode = TextEditingController();
   bool? _isRead = false;
   double _bookRating = 3;
+  String? _coverImage = "";
 
   List<String> ownershipStatus = ["Owned", "Borrowed", "Wishlist"];
 
   List<DropdownMenuItem<String>> shelfDropdown = [];
   String ownershipSelection = "";
   String shelf = "";
+
+  bool _isCoverImageExpanded = false;
 
   @override
   void initState() {
@@ -74,6 +77,7 @@ class _AddManualState extends State<AddManual> {
       shelf = widget.shelfId!;
       ownershipSelection = widget.bookRecord!.ownershipStatus!;
       _bookRating = widget.bookRecord!.bookRating!;
+      _coverImage = widget.bookRecord!.coverImage;
     }
   }
 
@@ -124,6 +128,69 @@ class _AddManualState extends State<AddManual> {
               key: _formKey,
               child: SingleChildScrollView(
                 child: Column(children: <Widget>[
+                  // * Cover Image
+                  Container(
+                      padding: const EdgeInsets.all(8.0),
+                      width: double.infinity,
+                      child: InputDecorator(
+                        decoration:
+                            const InputDecoration(border: OutlineInputBorder()),
+                        child: ExpansionPanelList(
+                            elevation: 0,
+                            // expandedHeaderPadding: EdgeInsets.all(8.0),
+                            expansionCallback: (int index, bool isExpanded) {
+                              setState(() {
+                                _isCoverImageExpanded = !_isCoverImageExpanded;
+                              });
+                            },
+                            children: [
+                              ExpansionPanel(
+                                  backgroundColor:
+                                      Theme.of(context).scaffoldBackgroundColor,
+                                  headerBuilder: (context, isExpanded) =>
+                                      const ListTile(
+                                          title: Text(
+                                        "Cover Image",
+                                        // textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 20),
+                                      )),
+                                  body: (_coverImage == null)
+                                      ? CustomElevatedButton(
+                                          "Add Image",
+                                          onPressed: () {},
+                                        )
+                                      : Image(
+                                          image: NetworkImage(_coverImage!),
+                                          loadingBuilder: (context, child,
+                                                  loadingProgress) =>
+                                              const CircularProgressIndicator(),
+                                          errorBuilder: (context, error,
+                                                  stackTrace) =>
+                                              Container(
+                                                  alignment: Alignment.center,
+                                                  height: 140,
+                                                  child: const Stack(
+                                                    children: [
+                                                      Placeholder(
+                                                        color: Colors.grey,
+                                                      ),
+                                                      Center(
+                                                        child: Text(
+                                                            "Unable to load image",
+                                                            style: TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold)),
+                                                      )
+                                                    ],
+                                                  ))),
+                                  isExpanded: _isCoverImageExpanded,
+                                  canTapOnHeader: true)
+                            ]),
+                      )),
+
                   //* Input Fields
                   CustomTextField(_txtTitle, "Title",
                       errorMsg: "Please input the book title",
@@ -143,7 +210,7 @@ class _AddManualState extends State<AddManual> {
                   CustomTextField(_txtPublisher, "Publisher",
                       isRequired: false),
                   CustomTextField(_txtDescription, "Description",
-                      isRequired: false),
+                      isRequired: false, isMultiline: true),
                   CustomTextField(_txtNotes, "Notes", isRequired: false),
                   CustomTextField(_txtLocation, "Location", isRequired: false),
 
@@ -235,7 +302,8 @@ class _AddManualState extends State<AddManual> {
                           isRead: _isRead,
                           seriesNumber: int.parse(_txtSeriesNumber.text),
                           isbnCode: _txtIsbnCode.text,
-                          ownershipStatus: ownershipSelection);
+                          ownershipStatus: ownershipSelection,
+                          coverImage: _coverImage);
 
                       bool realmSuccess = ModelHelper.addNewBook(data, shelf,
                           oldShelfId: widget.shelfId,

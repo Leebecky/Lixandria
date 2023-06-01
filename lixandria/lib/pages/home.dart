@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:lixandria/models/model_helper.dart';
-import 'package:lixandria/pages/add_manual.dart';
+import 'package:lixandria/pages/add/add_manual.dart';
 import 'package:realm/realm.dart';
 
 import '../constants.dart';
-import '../models/book.dart';
 import '../models/shelf.dart';
-import '../models/tag.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -37,21 +35,26 @@ class _HomeState extends State<Home> {
               shelvesList.length,
               (index) => SizedBox(
                   width: MediaQuery.of(context).size.width,
-                  height: 280,
+                  height: 330,
                   child: Stack(
                     children: [
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                            vertical: 30.0, horizontal: 8),
+                            vertical: 30.0, horizontal: 8.0),
                         child: ListView.builder(
                           itemCount: shelvesList[index].booksOnShelf.length,
                           scrollDirection: Axis.horizontal,
-                          itemExtent: MediaQuery.of(context).size.width / 3,
+                          itemExtent: MediaQuery.of(context).size.width / 2.5,
                           itemBuilder: (context, item) {
                             var shelf = shelvesList[index].booksOnShelf;
                             return Container(
-                                color: const Color(0xff484357),
+                                margin: EdgeInsets.only(left: 5),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(15),
+                                  color: const Color(0xff484357),
+                                ),
                                 child: Card(
+                                  color: const Color(0xff484357),
                                   child: InkWell(
                                     onTap: () => Navigator.of(context)
                                         .push(MaterialPageRoute(
@@ -62,18 +65,70 @@ class _HomeState extends State<Home> {
                                                       .shelfId,
                                                 ))),
                                     child: Column(children: [
-                                      const Placeholder(
-                                        fallbackHeight: 150,
+                                      (shelf[item].coverImage == null)
+                                          ? const Stack(
+                                              alignment: Alignment.center,
+                                              children: [
+                                                Placeholder(
+                                                  fallbackHeight: 140,
+                                                ),
+                                                Center(
+                                                  child: Text(
+                                                      "No image provided",
+                                                      style: TextStyle(
+                                                          color: Colors.white)),
+                                                )
+                                              ],
+                                            )
+                                          : Image(
+                                              image: NetworkImage(
+                                                  shelf[item].coverImage!),
+                                              height: 140,
+                                              loadingBuilder: (context, child,
+                                                      loadingProgress) =>
+                                                  const Padding(
+                                                padding: EdgeInsets.symmetric(
+                                                    vertical: 52.0),
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                              errorBuilder: (context, error,
+                                                      stackTrace) =>
+                                                  Container(
+                                                alignment: Alignment.center,
+                                                height: 140,
+                                                child: const Stack(
+                                                  children: [
+                                                    Placeholder(),
+                                                    Center(
+                                                      child: Text(
+                                                        "Unable to load image",
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.white),
+                                                      ),
+                                                    )
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                      const Divider(
+                                        color: Colors.white,
                                       ),
                                       Text(
                                         shelf[item].title!,
-                                        style: const TextStyle(fontSize: 20),
+                                        style: const TextStyle(
+                                            fontSize: 18, color: Colors.white),
                                         maxLines: 2,
                                         textAlign: TextAlign.center,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       Text(shelf[item].author!,
-                                          style: const TextStyle(fontSize: 15),
+                                          style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.white),
                                           textAlign: TextAlign.center,
                                           overflow: TextOverflow.ellipsis)
                                     ]),
