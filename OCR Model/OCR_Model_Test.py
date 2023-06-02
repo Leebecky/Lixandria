@@ -376,19 +376,22 @@ def spine_segment(book_spine_set, disp, ocr_reader):
         mask = np.zeros(disp.shape,dtype=np.uint8)
         pts = np.array([(0,spine_coords[0]), (img_width, spine_coords[1]), (img_width, spine_coords[2]), (0, spine_coords[3])], np.int32)
         cv2.fillPoly(mask, [pts], (255,255,255))
-
-
+        
         filt_img = disp&mask
         spine_segment = filt_img.copy()
 
         highest_point = spine_coords[0] if spine_coords[0] < spine_coords[1] else spine_coords[1]
         lower_point = spine_coords[2] if spine_coords[2] > spine_coords[3] else spine_coords[3]
+        print(highest_point, " | ", lower_point)
+
+        highest_point = 0 if highest_point < 0 else highest_point
+        lower_point = img_width if lower_point > img_width else lower_point
 
         spine_segment = spine_segment[highest_point:lower_point, :]
+       
         spine_segment = resizeImage(spine_segment, 150)
         results = ocr_reader.ocr(spine_segment, cls=True)   
         
-        # cv2.imshow('mask', mask)
         cv2.imshow("Segment", spine_segment)
         print("OCR: ", results)
         # print("OCR: ", results[0][0][0][1])
@@ -397,7 +400,7 @@ def spine_segment(book_spine_set, disp, ocr_reader):
 
 # Run
 # main("Images/upright4.webp")
-img_set = ["upright3.jpeg"]
+img_set = ["Mobile2.jpeg"]
 #  , "upright2.jpeg", "upright3.jpeg", "upright4.webp"]
 # , "sideways.jpeg", "mixed.jpeg"
 for file in img_set:

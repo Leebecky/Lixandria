@@ -80,20 +80,31 @@ class _HomeState extends State<Home> {
                                                 )
                                               ],
                                             )
-                                          : Image(
-                                              image: NetworkImage(
-                                                  shelf[item].coverImage!),
+                                          : Image.network(
+                                              shelf[item].coverImage!,
                                               height: 140,
-                                              loadingBuilder: (context, child,
-                                                      loadingProgress) =>
-                                                  const Padding(
-                                                padding: EdgeInsets.symmetric(
-                                                    vertical: 52.0),
-                                                child:
-                                                    CircularProgressIndicator(
-                                                  color: Colors.white,
-                                                ),
-                                              ),
+                                              loadingBuilder:
+                                                  (BuildContext context,
+                                                      Widget child,
+                                                      ImageChunkEvent?
+                                                          loadingProgress) {
+                                                if (loadingProgress == null) {
+                                                  return child;
+                                                }
+                                                return Center(
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    value: loadingProgress
+                                                                .expectedTotalBytes !=
+                                                            null
+                                                        ? loadingProgress
+                                                                .cumulativeBytesLoaded /
+                                                            loadingProgress
+                                                                .expectedTotalBytes!
+                                                        : null,
+                                                  ),
+                                                );
+                                              },
                                               errorBuilder: (context, error,
                                                       stackTrace) =>
                                                   Container(
@@ -114,6 +125,40 @@ class _HomeState extends State<Home> {
                                                 ),
                                               ),
                                             ),
+                                      // Image(
+                                      //     image: NetworkImage(
+                                      //         shelf[item].coverImage!),
+                                      //     height: 140,
+                                      //     loadingBuilder: (context, child,
+                                      //             loadingProgress) =>
+                                      //         const Padding(
+                                      //       padding: EdgeInsets.symmetric(
+                                      //           vertical: 52.0),
+                                      //       child:
+                                      //           CircularProgressIndicator(
+                                      //         color: Colors.white,
+                                      //       ),
+                                      //     ),
+                                      // errorBuilder: (context, error,
+                                      //         stackTrace) =>
+                                      //     Container(
+                                      //   alignment: Alignment.center,
+                                      //   height: 140,
+                                      //   child: const Stack(
+                                      //     children: [
+                                      //       Placeholder(),
+                                      //       Center(
+                                      //         child: Text(
+                                      //           "Unable to load image",
+                                      //           style: TextStyle(
+                                      //               color:
+                                      //                   Colors.white),
+                                      //         ),
+                                      //       )
+                                      //     ],
+                                      //   ),
+                                      // ),
+                                      //   ),
                                       const Divider(
                                         color: Colors.white,
                                       ),

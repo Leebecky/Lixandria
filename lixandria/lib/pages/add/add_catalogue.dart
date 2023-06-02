@@ -7,7 +7,7 @@ import 'package:lixandria/widgets/customTextfield.dart';
 
 import '../../constants.dart';
 import 'add_manual.dart';
-import 'add_spine.dart';
+import 'add_spine_camera.dart';
 
 class AddCatalogue extends StatefulWidget {
   const AddCatalogue({super.key});
@@ -18,7 +18,7 @@ class AddCatalogue extends StatefulWidget {
 
 class _AddCatalogueState extends State<AddCatalogue> {
   final httpHeader = "http://";
-  final apiAddress = ":5000/Lixandria_API";
+  final apiAddress = ":8000/Lixandria_API";
   final _ipAddress = TextEditingController();
 
   //^ Scan Barcode Function
@@ -127,9 +127,12 @@ configureIpAddress(BuildContext context, TextEditingController ipAddress,
               onPressed: () {
                 Navigator.pop(context, 'Cancel');
                 Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => AddSpine(
-                          ipAddress: "$httpHeader${ipAddress.text}$apiAddress",
-                        )));
+                    builder: (context) => AddSpineCamera(
+                        ipAddress: "$httpHeader${ipAddress.text}$apiAddress")
+                    //  AddSpine(
+                    //       ipAddress: "$httpHeader${ipAddress.text}$apiAddress",
+                    //     )
+                    ));
               },
               child: const Text(
                 'Confirm',

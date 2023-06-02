@@ -63,7 +63,7 @@ class _AddManualState extends State<AddManual> {
     shelf = shelfDropdown.first.value!;
 
     //^ Set Values if EDIT / Barcode Add
-    if (widget.mode == MODE_EDIT || widget.mode == MODE_NEW_DATA) {
+    if (widget.mode != MODE_EDIT) {
       _txtTitle.text = widget.bookRecord!.title!;
       _txtSubtitle.text = widget.bookRecord!.subTitle!;
       _txtAuthor.text = widget.bookRecord!.author!;
@@ -137,7 +137,7 @@ class _AddManualState extends State<AddManual> {
                             const InputDecoration(border: OutlineInputBorder()),
                         child: ExpansionPanelList(
                             elevation: 0,
-                            // expandedHeaderPadding: EdgeInsets.all(8.0),
+                            expandedHeaderPadding: const EdgeInsets.all(8.0),
                             expansionCallback: (int index, bool isExpanded) {
                               setState(() {
                                 _isCoverImageExpanded = !_isCoverImageExpanded;
@@ -159,33 +159,55 @@ class _AddManualState extends State<AddManual> {
                                   body: (_coverImage == null)
                                       ? CustomElevatedButton(
                                           "Add Image",
-                                          onPressed: () {},
+                                          onPressed: () {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(const SnackBar(
+                                                    content: Text(
+                                                        "Don't touch me!")));
+                                          },
                                         )
-                                      : Image(
-                                          image: NetworkImage(_coverImage!),
-                                          loadingBuilder: (context, child,
-                                                  loadingProgress) =>
-                                              const CircularProgressIndicator(),
-                                          errorBuilder: (context, error,
-                                                  stackTrace) =>
-                                              Container(
-                                                  alignment: Alignment.center,
-                                                  height: 140,
-                                                  child: const Stack(
-                                                    children: [
-                                                      Placeholder(
-                                                        color: Colors.grey,
-                                                      ),
-                                                      Center(
-                                                        child: Text(
-                                                            "Unable to load image",
-                                                            style: TextStyle(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold)),
-                                                      )
-                                                    ],
-                                                  ))),
+                                      : Image.network(
+                                          widget.bookRecord!.coverImage!,
+                                          height: 140,
+                                          loadingBuilder: (BuildContext context,
+                                              Widget child,
+                                              ImageChunkEvent?
+                                                  loadingProgress) {
+                                            if (loadingProgress == null) {
+                                              return child;
+                                            }
+                                            return Center(
+                                              child: CircularProgressIndicator(
+                                                value: loadingProgress
+                                                            .expectedTotalBytes !=
+                                                        null
+                                                    ? loadingProgress
+                                                            .cumulativeBytesLoaded /
+                                                        loadingProgress
+                                                            .expectedTotalBytes!
+                                                    : null,
+                                              ),
+                                            );
+                                          },
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  Container(
+                                            alignment: Alignment.center,
+                                            height: 140,
+                                            child: const Stack(
+                                              children: [
+                                                Placeholder(),
+                                                Center(
+                                                  child: Text(
+                                                    "Unable to load image",
+                                                    style: TextStyle(
+                                                        color: Colors.white),
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        ),
                                   isExpanded: _isCoverImageExpanded,
                                   canTapOnHeader: true)
                             ]),

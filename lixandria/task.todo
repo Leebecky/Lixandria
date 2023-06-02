@@ -1,0 +1,37 @@
+Manual Add:
+    ☐ Add new shelf
+    ☐ Tags
+    ☐ Cover Image - Add
+    ☐ Cover Image - Edit
+
+OCR:
+    ☐ Add support for sideways
+    ☐ Add support for mixed @low
+    ☐ Consider optimisation 
+
+Features:
+    ☐ Statistics:
+        ☐ Wordcloud - tags
+        ☐ Books by shelves
+        ☐ Books by ownership status
+    ✔ Settings @done(23-06-01 22:41)
+    ☐ Manage Shelves
+    ☐ Manage Tags
+    ☐ Clear Database
+    ☐ Export to CSV
+    ☐ Credits
+
+Shelf Add:
+    ☐ Capture image and display
+    ☐ Call and receive results from API
+    ☐ Listview of results
+    ☐ Listview of Book results
+    ☐ Save to Database
+
+Fixes: @high
+    ☐ Barcode scan
+        > fails to return results for certain books. Need to verify details causing error
+        ☐ Handle if no cover image returned
+        ☐ Handle if no books are found
+
+    ☐ API Timeout

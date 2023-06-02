@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from waitress import serve
 from imutils.object_detection import non_max_suppression
 import cv2
 import numpy as np
@@ -302,6 +303,9 @@ def spine_segment(book_spine_set, disp, ocr_reader):
             0] if spine_coords[0] < spine_coords[1] else spine_coords[1]
         lower_point = spine_coords[
             2] if spine_coords[2] > spine_coords[3] else spine_coords[3]
+        
+        highest_point = 0 if highest_point < 0 else highest_point
+        lower_point = img_width if lower_point > img_width else lower_point
 
         spine_segment = spine_segment[highest_point:lower_point, :]
         spine_segment = resizeImage(spine_segment, 150)
@@ -393,5 +397,6 @@ def SpineOCR():
 
 
 # Run the API
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000)
+# if __name__ == "__main__":
+#     app.run(host="0.0.0.0", port=8000)
+serve(app, host='0.0.0.0', port=8000, threads=1) #WAITRESS!

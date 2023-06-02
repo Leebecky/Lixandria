@@ -32,7 +32,7 @@ class _AddBarcodeState extends State<AddBarcode> {
         if (snapshot.hasData) {
           // return Text(snapshot.data!.first.title!);
           return AddManual(
-            mode: MODE_NEW_DATA,
+            mode: MODE_NEW_BARCODE,
             bookRecord: snapshot.data!.first,
             shelfId: "-1",
           );
@@ -64,7 +64,7 @@ class _AddBarcodeState extends State<AddBarcode> {
 }
 
 Future<List<Book>> fetchBookData(String barcodeScan) async {
-  barcodeScan = "9780786837885";
+  // barcodeScan = "9780786837885";
   final response = await http.get(Uri.parse(
       "https://www.googleapis.com/books/v1/volumes?q=isbn:$barcodeScan"));
 

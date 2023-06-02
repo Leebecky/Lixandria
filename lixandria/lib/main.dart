@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:lixandria/models/shelf.dart';
 import 'package:lixandria/pages/settings/settings.dart';
@@ -8,7 +9,10 @@ import 'models/tag.dart';
 import 'pages/add/add_catalogue.dart';
 import 'pages/home.dart';
 
-void main() {
+List<CameraDescription>? cameras;
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  cameras = await availableCameras();
   runApp(const MyApp());
 }
 
