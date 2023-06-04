@@ -109,24 +109,36 @@ class ModelHelper {
     }
   }
 
-  static List<Book> decodeBookFromJson(String apiResponse) {
+  static List<Book> decodeBookFromJson(String apiResponse,
+      {int maxResponses = -1}) {
     Map<String, dynamic> json = jsonDecode(apiResponse);
     List<Book> bookList = [];
-    for (var i = 0; i < json["totalItems"]; i++) {
+
+    int maxLength = (maxResponses == -1) ? json["totalItems"] : maxResponses;
+
+    for (var i = 0; i < maxLength; i++) {
       var bookData = json["items"][i]["volumeInfo"];
 
       Book book = Book(ObjectId().toString(),
-          title: bookData["title"],
-          subTitle: "",
-          author: (bookData["authors"] as List).join(","),
+          title: (bookData["title"] != null) ? bookData["title"] : "",
+          subTitle: (bookData["subtitle"] != null) ? bookData["subtitle"] : "",
+          author: (bookData["authors"] != null)
+              ? (bookData["authors"] as List).join(",")
+              : "",
           bookRating: 3,
-          coverImage: bookData["imageLinks"]["thumbnail"],
-          description: bookData["description"],
+          coverImage: (bookData["imageLinks"] != null)
+              ? bookData["imageLinks"]["thumbnail"]
+              : "",
+          description:
+              (bookData["description"] != null) ? bookData["description"] : "",
           isRead: false,
-          isbnCode: bookData["industryIdentifiers"][1]["identifier"],
+          isbnCode: (bookData["industryIdentifiers"] != null)
+              ? bookData["industryIdentifiers"][1]["identifier"]
+              : "",
           location: "",
           ownershipStatus: "Owned",
-          publisher: bookData["publisher"],
+          publisher:
+              (bookData["publisher"] != null) ? bookData["publisher"] : "",
           seriesNumber: 0,
           tags: [], // TODO: Handle Tags. Cross check existence in db, if !EXIST, then create new tag.
           userNotes: "");

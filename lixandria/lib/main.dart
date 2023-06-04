@@ -12,7 +12,7 @@ import 'pages/home.dart';
 List<CameraDescription>? cameras;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  cameras = await availableCameras();
+  // cameras = await availableCameras();
   runApp(const MyApp());
 }
 
@@ -31,6 +31,7 @@ class MyApp extends StatelessWidget {
     }
 
     return MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Lixandria',
         theme: ThemeData(
           fontFamily: GoogleFonts.karla().fontFamily,

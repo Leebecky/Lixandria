@@ -1,12 +1,8 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:lixandria/pages/add/add_spine_display.dart';
+import 'package:lixandria/pages/add/add_spine_api.dart';
 import 'package:lixandria/widgets/customElevatedButton.dart';
-import 'package:http/http.dart' as http;
-import '../../models/book.dart';
-import '../../models/model_helper.dart';
 
 class SpineAdd extends StatelessWidget {
   final String imagePath;
@@ -48,7 +44,7 @@ class SpineAdd extends StatelessWidget {
               )),
           CustomElevatedButton("Submit", onPressed: () {
             Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => SpineAddDisplay(
+                builder: (context) => SpineAddApi(
                       apiUrl: ipAddress,
                       imagePath: imagePath,
                     )));

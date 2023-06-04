@@ -1,11 +1,12 @@
 Manual Add:
-    ☐ Add new shelf
+    ☐ Add new shelf - copy from add_catalogue for form in dialog
     ☐ Tags
     ☐ Cover Image - Add
     ☐ Cover Image - Edit
 
 OCR:
-    ☐ Add support for sideways
+    ☐ Add support for sideways @critical
+        > Images in mobile tends to be sideways when sent to API
     ☐ Add support for mixed @low
     ☐ Consider optimisation 
 
@@ -22,16 +23,23 @@ Features:
     ☐ Credits
 
 Shelf Add:
-    ☐ Capture image and display
-    ☐ Call and receive results from API
-    ☐ Listview of results
-    ☐ Listview of Book results
-    ☐ Save to Database
+    ✔ Capture image and display @done(23-06-04 13:00)
+    ✔ Call and receive results from API @done(23-06-04 13:00)
+    ✔ Listview of results @done(23-06-04 13:08)
+    ✔ Listview of Book results @done(23-06-05 00:32)
+    ✔ Save to Database @done(23-06-05 00:32)
 
 Fixes: @high
     ☐ Barcode scan
         > fails to return results for certain books. Need to verify details causing error
-        ☐ Handle if no cover image returned
-        ☐ Handle if no books are found
+        ✔ Handle if no cover image returned @done(23-06-04 23:28)
+        ✔ Handle if no books are found @done(23-06-05 01:10)
 
-    ☐ API Timeout
+    ✔ API Timeout @done(23-06-04 13:00)
+        Fixed using Waitress and Task Scheduler to deploy on startup rather than relying on IIS
+    ✔ Prevent submission of blank Server address @done(23-06-04 23:13)
+    ☐ Allow user to change the retrieved book from Google API for OCR
+
+Misc: 
+    ☐ Add loading messages
+    ☐ Searchbar

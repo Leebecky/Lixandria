@@ -63,7 +63,7 @@ class _AddManualState extends State<AddManual> {
     shelf = shelfDropdown.first.value!;
 
     //^ Set Values if EDIT / Barcode Add
-    if (widget.mode != MODE_EDIT) {
+    if (widget.mode != MODE_NEW) {
       _txtTitle.text = widget.bookRecord!.title!;
       _txtSubtitle.text = widget.bookRecord!.subTitle!;
       _txtAuthor.text = widget.bookRecord!.author!;
@@ -156,7 +156,8 @@ class _AddManualState extends State<AddManual> {
                                             fontWeight: FontWeight.bold,
                                             fontSize: 20),
                                       )),
-                                  body: (_coverImage == null)
+                                  body: (_coverImage == null ||
+                                          _coverImage == "")
                                       ? CustomElevatedButton(
                                           "Add Image",
                                           onPressed: () {
@@ -217,7 +218,8 @@ class _AddManualState extends State<AddManual> {
                   CustomTextField(_txtTitle, "Title",
                       errorMsg: "Please input the book title",
                       isRequired: true,
-                      helpMsg: "*Required"),
+                      helpMsg: "*Required",
+                      isMultiline: true),
 
                   CustomTextField(_txtSubtitle, "Subtitle", isRequired: false),
                   CustomTextField(_txtAuthor, "Author",
@@ -233,7 +235,8 @@ class _AddManualState extends State<AddManual> {
                       isRequired: false),
                   CustomTextField(_txtDescription, "Description",
                       isRequired: false, isMultiline: true),
-                  CustomTextField(_txtNotes, "Notes", isRequired: false),
+                  CustomTextField(_txtNotes, "Notes",
+                      isRequired: false, isMultiline: true),
                   CustomTextField(_txtLocation, "Location", isRequired: false),
 
                   CustomDropdown(ownershipSelection,
@@ -266,7 +269,7 @@ class _AddManualState extends State<AddManual> {
                           border: OutlineInputBorder(),
                           labelText: "Book Rating"),
                       child: RatingBar(
-                        initialRating: 3,
+                        initialRating: _bookRating,
                         direction: Axis.horizontal,
                         allowHalfRating: true,
                         itemCount: 5,
@@ -306,8 +309,11 @@ class _AddManualState extends State<AddManual> {
                           })),
 
                   CustomElevatedButton(
-                      (widget.mode == MODE_EDIT) ? "Update" : "Submit",
-                      onPressed: () {
+                      (widget.mode == MODE_EDIT)
+                          ? "Update"
+                          : (widget.mode == MODE_NEW_SHELF)
+                              ? "Save Details"
+                              : "Submit", onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       String bookId = (widget.mode == MODE_EDIT)
                           ? widget.bookRecord!.bookId
@@ -327,24 +333,30 @@ class _AddManualState extends State<AddManual> {
                           ownershipStatus: ownershipSelection,
                           coverImage: _coverImage);
 
-                      bool realmSuccess = ModelHelper.addNewBook(data, shelf,
-                          oldShelfId: widget.shelfId,
-                          isUpdate: (widget.mode == MODE_EDIT));
-
-                      if (realmSuccess) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text("Book has been saved!"),
-                                showCloseIcon: true));
-                        Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(
-                                builder: (c) => const AppScaffold()),
-                            (route) => false);
+                      if (widget.mode == MODE_NEW_SHELF) {
+                        //* If New Shelf, return details
+                        Navigator.pop(context, {"book": data, "shelf": shelf});
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                            content: Text(
-                                "Error saving book to database. Please try again!"),
-                            showCloseIcon: true));
+                        //* Else, save to database
+                        bool realmSuccess = ModelHelper.addNewBook(data, shelf,
+                            oldShelfId: widget.shelfId,
+                            isUpdate: (widget.mode == MODE_EDIT));
+
+                        if (realmSuccess) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text("Book has been saved!"),
+                                  showCloseIcon: true));
+                          Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                  builder: (c) => const AppScaffold()),
+                              (route) => false);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                              content: Text(
+                                  "Error saving book to database. Please try again!"),
+                              showCloseIcon: true));
+                        }
                       }
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

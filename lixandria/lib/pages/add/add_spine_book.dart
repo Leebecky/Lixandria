@@ -5,24 +5,58 @@ import 'package:lixandria/widgets/customElevatedButton.dart';
 import 'package:realm/realm.dart';
 
 import '../../constants.dart';
+import '../../main.dart';
 import '../../models/book.dart';
 import '../../models/model_helper.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
+
+import '../../models/shelf.dart';
+import '../../widgets/customDropdown.dart';
 
 class SpineBookDisplay extends StatefulWidget {
-  const SpineBookDisplay({super.key});
+  final List<String> spineText;
+  const SpineBookDisplay({super.key, required this.spineText});
 
   @override
   State<SpineBookDisplay> createState() => _SpineBookDisplayState();
 }
 
 class _SpineBookDisplayState extends State<SpineBookDisplay> {
+  Map<String, String> shelfSelection = {};
   late Future<List<Book>> booksFromAPI;
+  List<DropdownMenuItem<String>> shelfDropdown = [];
+
+  Map<String, GlobalKey<FormState>> _formKeys = {};
 
   @override
   void initState() {
     super.initState();
-    booksFromAPI = fetchBookData("");
+    booksFromAPI = fetchBookData(widget.spineText);
+    shelfDropdown.addAll(prepareShelfDropdown());
+
+    DropdownMenuItem<String> addShelf = DropdownMenuItem<String>(
+      value: "-1",
+      child: const Row(
+        children: [
+          Icon(Icons.add_circle_outline_rounded),
+          Padding(
+            padding: EdgeInsets.only(left: 8.0),
+            child: Text(
+              "Add New Shelf",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+      onTap: () {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Test")));
+      },
+    );
+
+    if (shelfDropdown[0].value != "-1") {
+      shelfDropdown.insert(0, addShelf);
+    }
   }
 
   @override
@@ -31,6 +65,14 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
       future: booksFromAPI,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
+          for (int i = 0; i < snapshot.data!.length; i++) {
+            //* Generating Shelf Dropdown controllers
+            shelfSelection.putIfAbsent(
+                i.toString(), () => shelfDropdown.last.value!);
+            //* Generating Form Keys
+            _formKeys.putIfAbsent(i.toString(), () => GlobalKey<FormState>());
+          }
+
           return Scaffold(
               appBar: AppBar(
                 title: const Text("Add Book"),
@@ -57,6 +99,8 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
                                   onPressed: (context) {
                                     setState(() {
                                       snapshot.data!.removeAt(index);
+                                      shelfSelection.remove(index.toString());
+                                      _formKeys.remove(index.toString());
                                     });
 
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -74,8 +118,29 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 20),
                             ),
-                            subtitle: Text(snapshot.data![index].author!),
-                            leading: Container(
+                            subtitle: Form(
+                                key: _formKeys[index.toString()],
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(snapshot.data![index].author!),
+                                    CustomDropdown(
+                                        shelfSelection[index.toString()],
+                                        labelTxt: "Shelf",
+                                        dropdownItems: shelfDropdown,
+                                        validateFun: (String? val) {
+                                      if (val == "-1") {
+                                        return "Please select a valid shelf!";
+                                      }
+                                      return null;
+                                    }, onChangeFun: (String? val) {
+                                      setState(() {
+                                        shelfSelection[index.toString()] = val!;
+                                      });
+                                    }),
+                                  ],
+                                )),
+                            leading: SizedBox(
                               width: 50,
                               child: Image.network(
                                 snapshot.data![index].coverImage!,
@@ -84,21 +149,61 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
                                     const Icon(Icons.image_rounded),
                               ),
                             ),
-                            onTap: () =>
-                                Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (context) => AddManual(
-                                          bookRecord: snapshot.data![index],
-                                          shelfId: "-1",
-                                          mode: MODE_NEW_SHELF,
-                                        ))),
+                            onTap: () async {
+                              final updatedData = await Navigator.of(context)
+                                  .push(MaterialPageRoute(
+                                      builder: (context) => AddManual(
+                                            bookRecord: snapshot.data![index],
+                                            shelfId: shelfSelection[
+                                                index.toString()],
+                                            mode: MODE_NEW_SHELF,
+                                          )));
+
+                              if (!mounted) return;
+                              setState(() {
+                                snapshot.data![index] =
+                                    (updatedData["book"] as Book);
+                                shelfSelection[index.toString()] =
+                                    updatedData["shelf"];
+                              });
+                            },
                           )),
-                      separatorBuilder: (context, index) => Divider(),
+                      separatorBuilder: (context, index) => const Divider(),
                     ),
                   ),
-                  CustomElevatedButton("Save All",
-                      onPressed: () => ScaffoldMessenger.of(context)
-                          .showSnackBar(const SnackBar(
-                              content: Text("Saving all books to database")))),
+                  CustomElevatedButton("Save All", onPressed: () {
+                    bool validation = true;
+                    String msg = "";
+                    _formKeys.forEach((key, value) {
+                      var validate = value.currentState?.validate();
+                      if (validate == false) validation = false;
+                    });
+
+                    if (validation) {
+                      bool success = true;
+                      for (int i = 0; i < snapshot.data!.length; i++) {
+                        success = ModelHelper.addNewBook(
+                            snapshot.data![i], shelfSelection[i.toString()]!);
+
+                        if (!success) {
+                          break;
+                        }
+                      }
+
+                      if (success) {
+                        msg = "Saving all books to database";
+                      } else {
+                        msg =
+                            "Error encountered while saving books. Operation aborted.";
+                      }
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(content: Text(msg)));
+                      Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                              builder: (c) => const AppScaffold()),
+                          (route) => false);
+                    }
+                  }),
                   const SizedBox(
                     height: 20,
                   )
@@ -149,54 +254,44 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
     );
   }
 
-  Future<List<Book>> fetchBookData(String spineText) async {
+  Future<List<Book>> fetchBookData(List<String> spineText) async {
     List<Book> list = [];
-    list.add(Book(ObjectId().toString(),
-        title: "Test",
-        subTitle: "",
-        bookRating: 3,
-        description: "",
-        isRead: false,
-        isbnCode: "",
-        location: "",
-        ownershipStatus: "Owned",
-        publisher: "",
-        seriesNumber: 0,
-        tags: [],
-        userNotes: "",
-        coverImage:
-            "https://d1csarkz8obe9u.cloudfront.net/posterpreviews/contemporary-fiction-night-time-book-cover-design-template-1be47835c3058eb42211574e0c4ed8bf_screen.jpg?ts=1637012564",
-        author: "MR X"));
+    spineText = [
+      "Harry Potter and the Philosopher's Stone",
+      "Mary Norton The Borrowers Aloft",
+      "The Hobbit"
+    ];
 
-    list.add(Book(ObjectId().toString(),
-        title: "Fortress Blood",
-        subTitle: "",
-        bookRating: 3,
-        description: "",
-        isRead: false,
-        isbnCode: "",
-        location: "",
-        ownershipStatus: "Owned",
-        publisher: "",
-        seriesNumber: 0,
-        tags: [],
-        userNotes: "",
-        coverImage:
-            "https://www.google.com/url?sa=i&url=https%3A%2F%2Fmiblart.com%2Fblog%2Ffiction-book-cover-design%2F&psig=AOvVaw1J1hVhSMETo_zOk4paTE_9&ust=1685807813182000&source=images&cd=vfe&ved=0CBEQjRxqFwoTCOig_tD5pP8CFQAAAAAdAAAAABAZ",
-        author: "L.D Geoffigan"));
+    for (String text in spineText) {
+      final response = await get(
+          Uri.parse("https://www.googleapis.com/books/v1/volumes?q=$text"));
+
+      if (response.statusCode == 200) {
+        // If the server did return a 200 OK response,
+        // then parse the JSON.
+        List<Book> retrieved =
+            ModelHelper.decodeBookFromJson(response.body, maxResponses: 1);
+
+        if (retrieved.isNotEmpty) {
+          list.add((retrieved[0]));
+        }
+      } else {
+        // If no books was found, return detected spine text as title
+        list.add(Book(ObjectId().toString(), title: text));
+      }
+    }
+
     return list;
+  }
 
-    // final response = await http.get(
-    //     Uri.parse("https://www.googleapis.com/books/v1/volumes?q=$spineText"));
-
-    // if (response.statusCode == 200) {
-    //   // If the server did return a 200 OK response,
-    //   // then parse the JSON.
-    //   return ModelHelper.decodeBookFromJson(response.body);
-    // } else {
-    //   // If the server did not return a 200 OK response,
-    //   // then throw an exception.
-    //   throw Exception('Failed to find book');
-    // }
+  prepareShelfDropdown() {
+    RealmResults<Shelf> shelfDb = ModelHelper.getAllShelves();
+    List<DropdownMenuItem<String>> list = shelfDb
+        .map<DropdownMenuItem<String>>(
+          (x) => DropdownMenuItem<String>(
+              value: x.shelfId, child: Text(x.shelfName!)),
+        )
+        .toList();
+    return list;
   }
 }

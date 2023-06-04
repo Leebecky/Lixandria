@@ -48,7 +48,7 @@ class _HomeState extends State<Home> {
                           itemBuilder: (context, item) {
                             var shelf = shelvesList[index].booksOnShelf;
                             return Container(
-                                margin: EdgeInsets.only(left: 5),
+                                margin: const EdgeInsets.only(left: 5),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(15),
                                   color: const Color(0xff484357),

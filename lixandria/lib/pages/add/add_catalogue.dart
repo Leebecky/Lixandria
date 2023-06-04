@@ -20,6 +20,7 @@ class _AddCatalogueState extends State<AddCatalogue> {
   final httpHeader = "http://";
   final apiAddress = ":8000/Lixandria_API";
   final _ipAddress = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   //^ Scan Barcode Function
   // Referened from: https://pub.dev/packages/flutter_barcode_scanner/example
@@ -85,7 +86,9 @@ class _AddCatalogueState extends State<AddCatalogue> {
                 specificWidth: MediaQuery.of(context).size.width / 1.5,
                 onPressed: () {
               configureIpAddress(context, _ipAddress,
-                  httpHeader: httpHeader, apiAddress: apiAddress);
+                  httpHeader: httpHeader,
+                  apiAddress: apiAddress,
+                  formKey: _formKey);
             }),
           ],
         ),
@@ -95,7 +98,7 @@ class _AddCatalogueState extends State<AddCatalogue> {
 }
 
 configureIpAddress(BuildContext context, TextEditingController ipAddress,
-    {String? httpHeader, String? apiAddress}) {
+    {String? httpHeader, String? apiAddress, formKey}) {
   return showDialog<String>(
       context: context,
       builder: (BuildContext context) {
@@ -117,7 +120,10 @@ configureIpAddress(BuildContext context, TextEditingController ipAddress,
           ),
           titlePadding: const EdgeInsets.all(0),
           actionsPadding: const EdgeInsets.all(10),
-          content: CustomTextField(ipAddress, "Server IP Address"),
+          content: Form(
+              key: formKey,
+              child: CustomTextField(ipAddress, "Server IP Address",
+                  errorMsg: "Server Address is required!")),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.pop(context, 'Cancel'),
@@ -125,14 +131,16 @@ configureIpAddress(BuildContext context, TextEditingController ipAddress,
             ),
             FilledButton(
               onPressed: () {
-                Navigator.pop(context, 'Cancel');
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => AddSpineCamera(
-                        ipAddress: "$httpHeader${ipAddress.text}$apiAddress")
-                    //  AddSpine(
-                    //       ipAddress: "$httpHeader${ipAddress.text}$apiAddress",
-                    //     )
-                    ));
+                if (formKey.currentState!.validate()) {
+                  Navigator.pop(context, 'Cancel');
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => AddSpineCamera(
+                          ipAddress: "$httpHeader${ipAddress.text}$apiAddress")
+                      //  AddSpine(
+                      //       ipAddress: "$httpHeader${ipAddress.text}$apiAddress",
+                      //     )
+                      ));
+                }
               },
               child: const Text(
                 'Confirm',

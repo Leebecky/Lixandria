@@ -1,26 +1,25 @@
 import 'dart:convert';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:lixandria/models/book_segment.dart';
-import 'package:lixandria/pages/add/add_barcode.dart';
 import 'package:lixandria/widgets/customElevatedButton.dart';
 import 'package:lixandria/widgets/customTextfield.dart';
+import 'package:http/http.dart';
 
 import 'add_spine_book.dart';
 
-class SpineAddDisplay extends StatefulWidget {
+class SpineAddApi extends StatefulWidget {
   final String? apiUrl;
   final String? imagePath;
-  const SpineAddDisplay(
-      {super.key, required this.apiUrl, required this.imagePath});
+  const SpineAddApi({super.key, required this.apiUrl, required this.imagePath});
 
   @override
-  State<SpineAddDisplay> createState() => _SpineAddDisplayState();
+  State<SpineAddApi> createState() => _SpineAddApiState();
 }
 
-class _SpineAddDisplayState extends State<SpineAddDisplay> {
+class _SpineAddApiState extends State<SpineAddApi> {
   late Future<List<BookSegment>> segmentResults;
+  List<String> spineText = [];
 
   @override
   void initState() {
@@ -37,6 +36,7 @@ class _SpineAddDisplayState extends State<SpineAddDisplay> {
           Map<String, TextEditingController> textEditingControllers = {};
 
           for (int i = 0; i < snapshot.data!.length; i++) {
+            spineText.add(snapshot.data![i].spineText!);
             var textEditingController =
                 TextEditingController(text: snapshot.data![i].spineText);
             textEditingControllers.putIfAbsent(
@@ -64,11 +64,11 @@ class _SpineAddDisplayState extends State<SpineAddDisplay> {
                     itemBuilder: (context, index) {
                       return Slidable(
                         endActionPane:
-                            ActionPane(motion: ScrollMotion(), children: [
+                            ActionPane(motion: const ScrollMotion(), children: [
                           SlidableAction(
                             onPressed: (context) =>
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text("Delete..."))),
+                                    const SnackBar(content: Text("Delete..."))),
                             icon: Icons.delete_rounded,
                             label: "Delete",
                             foregroundColor: Colors.white,
@@ -93,7 +93,8 @@ class _SpineAddDisplayState extends State<SpineAddDisplay> {
                 ),
                 CustomElevatedButton("Submit", onPressed: () {
                   Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => const SpineBookDisplay()));
+                      builder: (context) =>
+                          SpineBookDisplay(spineText: spineText)));
                 })
               ],
             ),
@@ -143,14 +144,14 @@ class _SpineAddDisplayState extends State<SpineAddDisplay> {
 Future<List<BookSegment>> processShelfImage(
     String url, String imagePath) async {
   // final response = await http.get(Uri.parse(url));
-  http.MultipartRequest request = http.MultipartRequest('POST', Uri.parse(url));
+  MultipartRequest request = MultipartRequest('POST', Uri.parse(url));
 
   request.files.add(
-    await http.MultipartFile.fromPath('image', imagePath
-        // contentType: http. MediaType('application', 'jpeg')/,
+    await MultipartFile.fromPath('image', imagePath
+        // contentType:  MediaType('application', 'jpeg')/,
         ),
   );
-  http.StreamedResponse response = await request.send();
+  StreamedResponse response = await request.send();
   var apiOutput = await response.stream.bytesToString();
   // var apiOutput = await http.Response.fromStream(response);
 

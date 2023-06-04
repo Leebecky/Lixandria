@@ -1,32 +1,31 @@
-import 'dart:io';
-
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:lixandria/pages/add/add_spine.dart';
-import '../../main.dart';
 
 class AddSpineCamera extends StatefulWidget {
   final String? ipAddress;
   const AddSpineCamera({Key? key, this.ipAddress}) : super(key: key);
+
   @override
-  _AddSpineCameraState createState() => _AddSpineCameraState();
+  State<AddSpineCamera> createState() => _AddSpineCameraState();
 }
 
 class _AddSpineCameraState extends State<AddSpineCamera> {
   CameraController? controller;
+  List<CameraDescription>? cameraList;
   String imagePath = "";
 
   @override
   void initState() {
+    initCamera();
     super.initState();
 
-    controller = CameraController(cameras![0], ResolutionPreset.max);
-    controller?.initialize().then((_) {
-      if (!mounted) {
-        return;
-      }
-    });
+    // controller = CameraController(cameras![0], ResolutionPreset.max);
+    // controller?.initialize().then((_) {
+    //   if (!mounted) {
+    //     return;
+    //   }
+    // });
   }
 
   @override
@@ -37,64 +36,84 @@ class _AddSpineCameraState extends State<AddSpineCamera> {
 
   @override
   Widget build(BuildContext context) {
-    if (!controller!.value.isInitialized) {
+    if (controller == null) {
       return Container();
     }
-    final scale = 1 /
-        (controller!.value.aspectRatio *
-            MediaQuery.of(context).size.aspectRatio);
+
+    var controllerAspect = controller?.value.aspectRatio ?? 1;
+    final scale =
+        1 / (controllerAspect * MediaQuery.of(context).size.aspectRatio);
     return Scaffold(
       body: Center(
         child: Column(
           children: [
-            ClipRect(
-              clipper: _MediaSizeClipper(MediaQuery.of(context).size),
-              child: Transform.scale(
-                scale: scale,
-                alignment: Alignment.topCenter,
-                child: CameraPreview(controller!),
+            // * Camera
+            if (controller != null)
+              ClipRect(
+                clipper: _MediaSizeClipper(MediaQuery.of(context).size),
+                child: Transform.scale(
+                  scale: scale,
+                  alignment: Alignment.topCenter,
+                  child: CameraPreview(controller!),
+                ),
               ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(0.5),
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-              ),
-              child: IconButton(
-                  icon: const Icon(
-                    Icons.camera,
-                    size: 50,
-                  ),
-                  onPressed: () async {
-                    try {
-                      final image = await controller!.takePicture();
-                      setState(() {
-                        imagePath = image.path;
-                      });
-                      if (context.mounted) {
-                        // dispose();
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => SpineAdd(
-                                imagePath: imagePath,
-                                ipAddress: widget.ipAddress!)));
+
+            // * Capture Image Button
+            if (controller != null)
+              Container(
+                padding: const EdgeInsets.all(0.5),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                ),
+                child: IconButton(
+                    icon: const Icon(
+                      Icons.camera,
+                      size: 50,
+                    ),
+                    onPressed: () async {
+                      try {
+                        final image = await controller!.takePicture();
+                        setState(() {
+                          imagePath = image.path;
+                        });
+                        if (context.mounted) {
+                          Navigator.of(context)
+                              .pushReplacement(MaterialPageRoute(
+                                  builder: (context) => SpineAdd(
+                                        imagePath: imagePath,
+                                        ipAddress: widget.ipAddress!,
+                                      )));
+                          // await controller!.dispose();
+                        }
+                      } catch (e) {
+                        print(e);
                       }
-                    } catch (e) {
-                      print(e);
-                    }
-                  }),
-            ),
-            // if (imagePath != "")
-            //   Container(
-            //       width: 300,
-            //       height: 300,
-            //       child: Image.file(
-            //         File(imagePath),
-            //       ))
+                    }),
+              )
           ],
         ),
       ),
     );
+  }
+
+  initCamera() async {
+    // If cameraList == null shorthand
+    cameraList ??= await availableCameras();
+
+    if (controller?.value.isInitialized ?? false) {
+      controller!.dispose();
+    }
+
+    controller = CameraController(
+        cameraList!.firstWhere(
+          (element) => element.lensDirection == CameraLensDirection.back,
+        ),
+        ResolutionPreset.max,
+        enableAudio: false);
+    controller!.initialize().then((value) {
+      setState(() {});
+    });
   }
 }
 

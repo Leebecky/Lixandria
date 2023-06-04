@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lixandria/constants.dart';
 import 'package:lixandria/models/model_helper.dart';
 import 'package:lixandria/pages/add/add_manual.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 
 import '../../models/book.dart';
 
@@ -30,12 +30,38 @@ class _AddBarcodeState extends State<AddBarcode> {
       future: booksFromAPI,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          // return Text(snapshot.data!.first.title!);
-          return AddManual(
-            mode: MODE_NEW_BARCODE,
-            bookRecord: snapshot.data!.first,
-            shelfId: "-1",
-          );
+          if (snapshot.data!.isNotEmpty) {
+            return AddManual(
+              mode: MODE_NEW_BARCODE,
+              bookRecord: snapshot.data!.first,
+              shelfId: "-1",
+            );
+          } else {
+            //* if no book is found
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text("Add Book"),
+                leading: IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: Colors.white,
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                foregroundColor: Colors.white,
+                backgroundColor: const Color(0xff285430),
+              ),
+              body: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    "No book with ISBN: ${widget.barcode} found. \nTry scanning the barcode again or consider using the Manual or Scan Book Spine methods instead.",
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                ),
+              ),
+            );
+          }
         } else if (snapshot.hasError) {
           return Text('${snapshot.error}');
         }
@@ -65,7 +91,7 @@ class _AddBarcodeState extends State<AddBarcode> {
 
 Future<List<Book>> fetchBookData(String barcodeScan) async {
   // barcodeScan = "9780786837885";
-  final response = await http.get(Uri.parse(
+  final response = await get(Uri.parse(
       "https://www.googleapis.com/books/v1/volumes?q=isbn:$barcodeScan"));
 
   if (response.statusCode == 200) {
