@@ -22,6 +22,14 @@ class ModelHelper {
     return shelfList;
   }
 
+  static RealmResults<Tag> getAllTags() {
+    final realmConfig = Configuration.local([Tag.schema]);
+    var realm = Realm(realmConfig);
+
+    final RealmResults<Tag> tagList = realm.all<Tag>();
+    return tagList;
+  }
+
   static List<Shelf> convertToShelf(RealmResults<Shelf> data) {
     List<Shelf> shelves = data
         .map((e) => Shelf(e.shelfId,
@@ -48,14 +56,23 @@ class ModelHelper {
             isbnCode: b.isbnCode,
             ownershipStatus: b.ownershipStatus,
             seriesNumber: b.seriesNumber,
-            tags: convertToTag(b.tags)))
+            tags: convertToTag(data: b.tags)))
         .toList();
     return books;
   }
 
-  static List<Tag> convertToTag(RealmList<Tag> data) {
-    List<Tag> tags = data.map((t) => Tag(t.tagId, tagDesc: t.tagDesc)).toList();
-    return tags;
+  static List<Tag> convertToTag(
+      {RealmList<Tag>? data, RealmResults<Tag>? dataFromResults}) {
+    if (data != null) {
+      List<Tag> tags =
+          data.map((t) => Tag(t.tagId, tagDesc: t.tagDesc)).toList();
+      return tags;
+    } else {
+      List<Tag> tags = dataFromResults!
+          .map((t) => Tag(t.tagId, tagDesc: t.tagDesc))
+          .toList();
+      return tags;
+    }
   }
 
   // Save new book record
@@ -146,5 +163,87 @@ class ModelHelper {
     }
 
     return bookList;
+  }
+
+  // add new shelf record
+  static addNewShelf(Shelf data, bool isUpdate) {
+    try {
+      final realmConfig =
+          Configuration.local([Shelf.schema, Book.schema, Tag.schema]);
+      var realm = Realm(realmConfig);
+
+      realm.write(() {
+        realm.add(data, update: isUpdate);
+      });
+      return true;
+    } catch (ex) {
+      print("addNewShelf Exception: ${ex.toString()}");
+      return false;
+    }
+  }
+
+  // delete shelf
+  static bool deleteShelf(String shelfId) {
+    final realmConfig =
+        Configuration.local([Shelf.schema, Book.schema, Tag.schema]);
+    var realm = Realm(realmConfig);
+    try {
+      final dataFromDb =
+          realm.all<Shelf>().query(r'shelfId == $0', [shelfId]).first;
+      realm.write(() {
+        realm.delete(dataFromDb);
+      });
+
+      return true;
+    } catch (e) {
+      print("deleteShelf Exception: ${e.toString()}");
+      return false;
+    }
+  }
+
+  // add new Tag record
+  static addNewTag(Tag data, bool isUpdate) {
+    try {
+      final realmConfig = Configuration.local([Tag.schema]);
+      var realm = Realm(realmConfig);
+
+      realm.write(() {
+        realm.add(data, update: isUpdate);
+      });
+      return true;
+    } catch (ex) {
+      print("addNewTag Exception: ${ex.toString()}");
+      return false;
+    }
+  }
+
+  // delete Tag
+  static bool deleteTag(String tagId) {
+    final realmConfig = Configuration.local([Book.schema, Tag.schema]);
+    var realm = Realm(realmConfig);
+    try {
+      final dataFromDb = realm.all<Tag>().query(r'tagId == $0', [tagId]).first;
+      final books = realm.all<Book>();
+      List<Tag> deletionList = [];
+
+      for (var book in books) {
+        final tagData = book.tags.query(r'tagId == $0', [tagId]).firstOrNull;
+        if (tagData != null) {
+          deletionList.add(tagData);
+        }
+      }
+
+      realm.write(() {
+        if (deletionList.isNotEmpty) {
+          realm.deleteMany(deletionList);
+        }
+        realm.delete(dataFromDb);
+      });
+
+      return true;
+    } catch (e) {
+      print("deleteTag Exception: ${e.toString()}");
+      return false;
+    }
   }
 }

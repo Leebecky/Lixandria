@@ -1,5 +1,5 @@
 Manual Add:
-    ☐ Add new shelf - copy from add_catalogue for form in dialog
+    ☐ Add new shelf
     ☐ Tags
     ☐ Cover Image - Add
     ☐ Cover Image - Edit
@@ -16,11 +16,12 @@ Features:
         ☐ Books by shelves
         ☐ Books by ownership status
     ✔ Settings @done(23-06-01 22:41)
-    ☐ Manage Shelves
-    ☐ Manage Tags
-    ☐ Clear Database
+    ✔ Manage Shelves @done(23-06-21 15:30)
+    ✔ Manage Tags @done(23-06-21 15:30)
+    ✔ Clear Database @done(23-06-20 23:33)
     ☐ Export to CSV
-    ☐ Credits
+    ✔ Credits @done(23-06-20 23:33)
+        ☐ UI Finetuning needed
 
 Shelf Add:
     ✔ Capture image and display @done(23-06-04 13:00)
@@ -38,7 +39,11 @@ Fixes: @high
     ✔ API Timeout @done(23-06-04 13:00)
         Fixed using Waitress and Task Scheduler to deploy on startup rather than relying on IIS
     ✔ Prevent submission of blank Server address @done(23-06-04 23:13)
-    ☐ Allow user to change the retrieved book from Google API for OCR
+    
+    ☐ OCR
+        ☐ Allow user to change the retrieved book from Google API for OCR
+        ☐ Handle no books found
+        
 
 Misc: 
     ☐ Add loading messages

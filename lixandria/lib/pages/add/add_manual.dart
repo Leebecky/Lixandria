@@ -9,6 +9,7 @@ import 'package:lixandria/widgets/customTextfield.dart';
 
 import 'package:realm/realm.dart';
 import '../../models/book.dart';
+import '../../models/tag.dart';
 import '../../widgets/customDropdown.dart';
 import '../../widgets/customElevatedButton.dart';
 
@@ -25,6 +26,8 @@ class AddManual extends StatefulWidget {
 class _AddManualState extends State<AddManual> {
   // Form Key
   final _formKey = GlobalKey<FormState>();
+  final _shelfFormKey = GlobalKey<FormState>();
+  final _tagFormKey = GlobalKey<FormState>();
 
   // Controllers to retrieve form values
   final _txtTitle = TextEditingController();
@@ -51,16 +54,10 @@ class _AddManualState extends State<AddManual> {
   @override
   void initState() {
     super.initState();
-    RealmResults<Shelf> shelfDb = ModelHelper.getAllShelves();
-    List<DropdownMenuItem<String>> list = shelfDb
-        .map<DropdownMenuItem<String>>(
-          (x) => DropdownMenuItem<String>(
-              value: x.shelfId, child: Text(x.shelfName!)),
-        )
-        .toList();
+    List<DropdownMenuItem<String>> list = generateShelfDropdown(context);
     shelfDropdown.addAll(list);
     ownershipSelection = ownershipStatus.first;
-    shelf = shelfDropdown.first.value!;
+    shelf = (shelfDropdown.length > 1) ? shelfDropdown[1].value! : "-1";
 
     //^ Set Values if EDIT / Barcode Add
     if (widget.mode != MODE_NEW) {
@@ -81,32 +78,37 @@ class _AddManualState extends State<AddManual> {
     }
   }
 
+  List<DropdownMenuItem<String>> generateShelfDropdown(context) {
+    RealmResults<Shelf> shelfDb = ModelHelper.getAllShelves();
+    List<DropdownMenuItem<String>> list = shelfDb
+        .map<DropdownMenuItem<String>>(
+          (x) => DropdownMenuItem<String>(
+              value: x.shelfId, child: Text(x.shelfName!)),
+        )
+        .toList();
+
+    //^ Inititialise [Add New Shelf] option
+    DropdownMenuItem<String> addShelf = const DropdownMenuItem<String>(
+        value: "-1",
+        child: Row(
+          children: [
+            Icon(Icons.add_circle_outline_rounded),
+            Padding(
+              padding: EdgeInsets.only(left: 8.0),
+              child: Text(
+                "Add New Shelf",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ));
+    list.insert(0, addShelf);
+
+    return list;
+  }
+
   @override
   Widget build(BuildContext context) {
-    DropdownMenuItem<String> addShelf = DropdownMenuItem<String>(
-      value: "-1",
-      child: const Row(
-        children: [
-          Icon(Icons.add_circle_outline_rounded),
-          Padding(
-            padding: EdgeInsets.only(left: 8.0),
-            child: Text(
-              "Add New Shelf",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-      onTap: () {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("Test")));
-      },
-    );
-
-    if (shelfDropdown[0].value != "-1") {
-      shelfDropdown.insert(0, addShelf);
-    }
-
     return Scaffold(
         appBar: AppBar(
           title: (widget.mode == MODE_EDIT)
@@ -247,7 +249,6 @@ class _AddManualState extends State<AddManual> {
                     });
                   }),
 
-                  // TODO Dropdown for Shelf -  Add to DB
                   CustomDropdown(shelf,
                       labelTxt: "Shelf",
                       dropdownItems: shelfDropdown, validateFun: (String? val) {
@@ -256,9 +257,23 @@ class _AddManualState extends State<AddManual> {
                     }
                     return null;
                   }, onChangeFun: (String? val) {
-                    setState(() {
-                      shelf = val!;
-                    });
+                    if (val == "-1") {
+                      showDialog(
+                          context: context,
+                          builder: (context) => addShelfDialog(
+                              context, _shelfFormKey,
+                              onComplete: () => setState(() {
+                                    shelfDropdown =
+                                        generateShelfDropdown(context);
+                                    shelf =
+                                        shelfDropdown[shelfDropdown.length - 1]
+                                            .value!;
+                                  })));
+                    } else {
+                      setState(() {
+                        shelf = val!;
+                      });
+                    }
                   }),
 
                   Container(
@@ -291,14 +306,57 @@ class _AddManualState extends State<AddManual> {
                   Container(
                       padding: const EdgeInsets.all(8.0),
                       width: double.infinity,
-                      child: const InputDecorator(
-                        decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: "Book Tags"),
-                        child: Placeholder(
-                          fallbackHeight: 200,
-                        ),
-                      )),
+                      child: InputDecorator(
+                          decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: "Book Tags"),
+                          child: Column(
+                            children: [
+                              MenuItemButton(
+                                onPressed: () => print("PING"),
+                                trailingIcon: const Icon(
+                                  Icons.arrow_drop_down,
+                                  color: Colors.white,
+                                  size: 50,
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        Theme.of(context).primaryColor,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(5))),
+                                child: const Text(
+                                  "Select Tags",
+                                  style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white),
+                                ),
+                              ),
+                              Wrap(
+                                runSpacing: 2.5,
+                                spacing: 2.5,
+                                children: [
+                                  Chip(label: Text("Romance")),
+                                  Chip(label: Text("Romance")),
+                                  Chip(label: Text("Romance")),
+                                  Chip(label: Text("Romance")),
+                                  Chip(label: Text("Romance")),
+                                  Chip(label: Text("Romance")),
+                                  Chip(label: Text("Romance")),
+                                  Chip(label: Text("Romance")),
+                                  Chip(label: Text("Romance")),
+                                  Chip(label: Text("Romance")),
+                                  Chip(label: Text("Romance")),
+                                  Chip(label: Text("Romance")),
+                                  Chip(label: Text("Romance")),
+                                  Chip(label: Text("Romance")),
+                                  Chip(label: Text("Romance")),
+                                  Chip(label: Text("Romance")),
+                                ],
+                              )
+                            ],
+                          ))),
 
                   CheckboxListTile(
                       title: const Text("Is Read?"),
@@ -420,4 +478,128 @@ class _AddManualState extends State<AddManual> {
     _txtIsbnCode.dispose();
     super.dispose();
   }
+}
+
+addShelfDialog(context, formKey, {onComplete}) {
+  final shelfNameTxt = TextEditingController()..text = "";
+  String shelfId = ObjectId().toString();
+
+  return AlertDialog(
+      title: Container(
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: Colors.green.shade700,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(25.0),
+            topRight: Radius.circular(25.0),
+          ),
+        ),
+        child: const Text(
+          "New Shelf",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
+      titlePadding: const EdgeInsets.all(0),
+      actionsPadding: const EdgeInsets.all(10),
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width,
+        child: Form(
+            key: formKey,
+            child: CustomTextField(shelfNameTxt, "Shelf Name",
+                errorMsg: "Shelf Name is required!")),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.pop(context, 'Cancel'),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Shelf data = Shelf(shelfId,
+                    shelfName: shelfNameTxt.text, booksOnShelf: []);
+                bool success = ModelHelper.addNewShelf(data, false);
+
+                onComplete();
+
+                String msg = (success)
+                    ? "Shelf added"
+                    : "Unexpected error encountered. Please try again.";
+
+                Navigator.pop(context, "Cancel");
+
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(msg),
+                  showCloseIcon: true,
+                ));
+              }
+            },
+            child: const Text(
+              'Confirm',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ))
+      ]);
+}
+
+addTagDialog(context, formKey, {onComplete}) {
+  final tagNameTxt = TextEditingController()..text = "";
+  String tagId = ObjectId().toString();
+
+  return AlertDialog(
+      title: Container(
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: Colors.green.shade700,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(25.0),
+            topRight: Radius.circular(25.0),
+          ),
+        ),
+        child: const Text(
+          "New Tag",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
+      titlePadding: const EdgeInsets.all(0),
+      actionsPadding: const EdgeInsets.all(10),
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width,
+        child: Form(
+            key: formKey,
+            child: CustomTextField(tagNameTxt, "Tag Description",
+                errorMsg: "Tag Description is required!")),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.pop(context, 'Cancel'),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Tag data = Tag(
+                  tagId,
+                  tagDesc: tagNameTxt.text,
+                );
+                bool success = ModelHelper.addNewTag(data, false);
+
+                onComplete();
+
+                String msg = (success)
+                    ? "Tag added"
+                    : "Unexpected error encountered. Please try again.";
+
+                Navigator.pop(context, "Cancel");
+
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(msg),
+                  showCloseIcon: true,
+                ));
+              }
+            },
+            child: const Text(
+              'Confirm',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ))
+      ]);
 }
