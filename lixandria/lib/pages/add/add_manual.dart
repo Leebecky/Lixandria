@@ -42,6 +42,7 @@ class _AddManualState extends State<AddManual> {
   bool? _isRead = false;
   double _bookRating = 3;
   String? _coverImage = "";
+  List<Tag> _bookTags = [];
 
   List<String> ownershipStatus = ["Owned", "Borrowed", "Wishlist"];
 
@@ -75,6 +76,7 @@ class _AddManualState extends State<AddManual> {
       ownershipSelection = widget.bookRecord!.ownershipStatus!;
       _bookRating = widget.bookRecord!.bookRating!;
       _coverImage = widget.bookRecord!.coverImage;
+      _bookTags = widget.bookRecord!.tags;
     }
   }
 
@@ -302,60 +304,59 @@ class _AddManualState extends State<AddManual> {
                     ),
                   ),
 
-                  // TODO Tags - Chips
                   Container(
+                      constraints:
+                          const BoxConstraints(maxHeight: 225, minHeight: 150),
                       padding: const EdgeInsets.all(8.0),
                       width: double.infinity,
                       child: InputDecorator(
                           decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               labelText: "Book Tags"),
-                          child: Column(
-                            children: [
-                              MenuItemButton(
-                                onPressed: () => print("PING"),
-                                trailingIcon: const Icon(
-                                  Icons.arrow_drop_down,
-                                  color: Colors.white,
-                                  size: 50,
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                MenuItemButton(
+                                  trailingIcon: const Icon(
+                                    Icons.arrow_drop_down,
+                                    color: Colors.white,
+                                    size: 50,
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                          Theme.of(context).primaryColor,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(5))),
+                                  onPressed: () async {
+                                    var tagSelection = await showDialog(
+                                        context: context,
+                                        builder: (context) =>
+                                            tagSelectionDialog(_tagFormKey,
+                                                bookTags: _bookTags));
+                                    if (tagSelection != "Cancel") {
+                                      setState(() => _bookTags = tagSelection);
+                                    }
+                                  },
+                                  child: const Text(
+                                    "Select Tags",
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white),
+                                  ),
                                 ),
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        Theme.of(context).primaryColor,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(5))),
-                                child: const Text(
-                                  "Select Tags",
-                                  style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white),
-                                ),
-                              ),
-                              Wrap(
-                                runSpacing: 2.5,
-                                spacing: 2.5,
-                                children: [
-                                  Chip(label: Text("Romance")),
-                                  Chip(label: Text("Romance")),
-                                  Chip(label: Text("Romance")),
-                                  Chip(label: Text("Romance")),
-                                  Chip(label: Text("Romance")),
-                                  Chip(label: Text("Romance")),
-                                  Chip(label: Text("Romance")),
-                                  Chip(label: Text("Romance")),
-                                  Chip(label: Text("Romance")),
-                                  Chip(label: Text("Romance")),
-                                  Chip(label: Text("Romance")),
-                                  Chip(label: Text("Romance")),
-                                  Chip(label: Text("Romance")),
-                                  Chip(label: Text("Romance")),
-                                  Chip(label: Text("Romance")),
-                                  Chip(label: Text("Romance")),
-                                ],
-                              )
-                            ],
+                                const SizedBox(height: 5.0),
+                                Wrap(
+                                  spacing: 5.0,
+                                  children: _bookTags
+                                      .map((x) => Chip(
+                                            label: Text(x.tagDesc!),
+                                          ))
+                                      .toList(),
+                                )
+                              ],
+                            ),
                           ))),
 
                   CheckboxListTile(
@@ -389,7 +390,8 @@ class _AddManualState extends State<AddManual> {
                           seriesNumber: int.parse(_txtSeriesNumber.text),
                           isbnCode: _txtIsbnCode.text,
                           ownershipStatus: ownershipSelection,
-                          coverImage: _coverImage);
+                          coverImage: _coverImage,
+                          tags: _bookTags);
 
                       if (widget.mode == MODE_NEW_SHELF) {
                         //* If New Shelf, return details
@@ -462,6 +464,92 @@ class _AddManualState extends State<AddManual> {
                 ]),
               ),
             )));
+  }
+
+  Widget tagSelectionDialog(tagFormKey, {required List<Tag> bookTags}) {
+    // final searchCtrl = TextEditingController();
+    List<Map<String, Object>> tagList = generateTagSelection(bookTags);
+
+    return StatefulBuilder(
+        builder: (BuildContext context, StateSetter setState) => AlertDialog(
+                title: Container(
+                  padding: const EdgeInsets.all(15),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade700,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(25.0),
+                      topRight: Radius.circular(25.0),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      // Expanded(child: SearchBar(controller: searchCtrl)),
+                      const Expanded(
+                          child: Text(
+                        "Select Book Tags",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 25),
+                      )),
+                      IconButton(
+                          onPressed: () => showDialog(
+                              context: context,
+                              builder: (context) => addTagDialog(
+                                  context, tagFormKey,
+                                  onComplete: () => setState(() => tagList =
+                                      generateTagSelection(bookTags)))),
+                          icon: const Icon(
+                            Icons.add_circle_rounded,
+                            color: Colors.white,
+                            size: 50,
+                          ))
+                    ],
+                  ),
+                ),
+                titlePadding: const EdgeInsets.all(0),
+                actionsPadding: const EdgeInsets.all(10),
+                content: SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: ListView.builder(
+                      itemCount: tagList.length,
+                      itemBuilder: (context, index) {
+                        Tag tag = tagList[index]["Tag"] as Tag;
+                        return CheckboxListTile(
+                            value: tagList[index]["Value"] as bool,
+                            title: Text(tag.tagDesc!),
+                            onChanged: (val) => setState(() {
+                                  tagList[index]["Value"] = val!;
+                                }));
+                      }),
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, 'Cancel'),
+                    child: const Text('Cancel'),
+                  ),
+                  FilledButton(
+                      onPressed: () {
+                        List<Tag> selection = [];
+                        for (var element in tagList) {
+                          if (element["Value"] as bool) {
+                            selection.add(element["Tag"] as Tag);
+                          }
+                        }
+                        Navigator.pop(context, selection);
+
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(const SnackBar(
+                          content: Text("Tags Updated"),
+                          showCloseIcon: true,
+                          duration: Duration(seconds: 1),
+                        ));
+                      },
+                      child: const Text(
+                        'Confirm',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ))
+                ]));
   }
 
   //^ Cleaning Up Resources
@@ -541,7 +629,7 @@ addShelfDialog(context, formKey, {onComplete}) {
       ]);
 }
 
-addTagDialog(context, formKey, {onComplete}) {
+Widget addTagDialog(context, formKey, {onComplete}) {
   final tagNameTxt = TextEditingController()..text = "";
   String tagId = ObjectId().toString();
 
@@ -602,4 +690,16 @@ addTagDialog(context, formKey, {onComplete}) {
               style: TextStyle(fontWeight: FontWeight.bold),
             ))
       ]);
+}
+
+generateTagSelection(List<Tag> bookTags) {
+  RealmResults<Tag> tagData = ModelHelper.getAllTags();
+  List<Tag> tagList = ModelHelper.convertToTag(dataFromResults: tagData);
+  List<Map<String, Object>> list = [];
+  for (Tag x in tagList) {
+    Tag? existing =
+        bookTags.where((element) => element.tagId == x.tagId).firstOrNull;
+    list.add({"Tag": x, "Value": (existing != null)});
+  }
+  return list;
 }

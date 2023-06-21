@@ -85,7 +85,7 @@ class ModelHelper {
     final shelf = realm.all<Shelf>().query(r'shelfId == $0', [shelfId]);
 
     realm.write(() {
-      realm.add(data, update: isUpdate);
+      realm.add(data, update: true);
 
       if (!isUpdate || (isUpdate && (shelfId != oldShelfId))) {
         if (shelf.isNotEmpty) {
@@ -103,9 +103,6 @@ class ModelHelper {
       }
     });
 
-    // if (!realm.isClosed) {
-    //   realm.close();
-    // }
     return true;
   }
 
@@ -223,20 +220,8 @@ class ModelHelper {
     var realm = Realm(realmConfig);
     try {
       final dataFromDb = realm.all<Tag>().query(r'tagId == $0', [tagId]).first;
-      final books = realm.all<Book>();
-      List<Tag> deletionList = [];
-
-      for (var book in books) {
-        final tagData = book.tags.query(r'tagId == $0', [tagId]).firstOrNull;
-        if (tagData != null) {
-          deletionList.add(tagData);
-        }
-      }
 
       realm.write(() {
-        if (deletionList.isNotEmpty) {
-          realm.deleteMany(deletionList);
-        }
         realm.delete(dataFromDb);
       });
 

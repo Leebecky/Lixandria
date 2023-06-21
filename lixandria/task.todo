@@ -1,6 +1,6 @@
 Manual Add:
-    ☐ Add new shelf
-    ☐ Tags
+    ✔ Add new shelf @done(23-06-21 18:06)
+    ✔ Tags @done(23-06-22 07:11)
     ☐ Cover Image - Add
     ☐ Cover Image - Edit
 
@@ -48,3 +48,4 @@ Fixes: @high
 Misc: 
     ☐ Add loading messages
     ☐ Searchbar
+    ☐ Sort tags alphabetically
