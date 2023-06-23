@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:lixandria/pages/add/add_barcode.dart';
+import 'package:lixandria/pages/add/camera.dart';
 import 'package:lixandria/widgets/customElevatedButton.dart';
 import 'package:lixandria/widgets/customTextfield.dart';
 
 import '../../constants.dart';
 import 'add_manual.dart';
+import 'add_spine.dart';
 import 'add_spine_camera.dart';
 
 class AddCatalogue extends StatefulWidget {
@@ -134,8 +136,17 @@ configureIpAddress(BuildContext context, TextEditingController ipAddress,
                 if (formKey.currentState!.validate()) {
                   Navigator.pop(context, 'Cancel');
                   Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => AddSpineCamera(
-                          ipAddress: "$httpHeader${ipAddress.text}$apiAddress")
+                      builder: (context) => Camera(
+                            navigation: (imagePath) => Navigator.of(context)
+                                .pushReplacement(MaterialPageRoute(
+                                    builder: (context) => SpineAdd(
+                                          imagePath: imagePath,
+                                          ipAddress:
+                                              "$httpHeader${ipAddress.text}$apiAddress",
+                                        ))),
+                          )
+                      // AddSpineCamera(
+                      //     ipAddress: "$httpHeader${ipAddress.text}$apiAddress")
                       //  AddSpine(
                       //       ipAddress: "$httpHeader${ipAddress.text}$apiAddress",
                       //     )

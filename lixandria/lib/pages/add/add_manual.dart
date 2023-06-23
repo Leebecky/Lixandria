@@ -1,11 +1,16 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:lixandria/constants.dart';
 import 'package:lixandria/main.dart';
 import 'package:lixandria/models/model_helper.dart';
 import 'package:lixandria/models/shelf.dart';
+import 'package:lixandria/pages/add/camera.dart';
 import 'package:lixandria/widgets/customAlertDialog.dart';
 import 'package:lixandria/widgets/customTextfield.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 import 'package:realm/realm.dart';
 import '../../models/book.dart';
@@ -43,6 +48,7 @@ class _AddManualState extends State<AddManual> {
   double _bookRating = 3;
   String? _coverImage = "";
   List<Tag> _bookTags = [];
+  List<Tag> _tagsNotInDb = [];
 
   List<String> ownershipStatus = ["Owned", "Borrowed", "Wishlist"];
 
@@ -77,6 +83,7 @@ class _AddManualState extends State<AddManual> {
       _bookRating = widget.bookRecord!.bookRating!;
       _coverImage = widget.bookRecord!.coverImage;
       _bookTags = widget.bookRecord!.tags;
+      _tagsNotInDb = _bookTags.where((x) => !x.isInDatabase).toList();
     }
   }
 
@@ -160,59 +167,27 @@ class _AddManualState extends State<AddManual> {
                                             fontWeight: FontWeight.bold,
                                             fontSize: 20),
                                       )),
-                                  body: (_coverImage == null ||
-                                          _coverImage == "")
-                                      ? CustomElevatedButton(
-                                          "Add Image",
-                                          onPressed: () {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(const SnackBar(
-                                                    content: Text(
-                                                        "Don't touch me!")));
-                                          },
-                                        )
-                                      : Image.network(
-                                          widget.bookRecord!.coverImage!,
-                                          height: 140,
-                                          loadingBuilder: (BuildContext context,
-                                              Widget child,
-                                              ImageChunkEvent?
-                                                  loadingProgress) {
-                                            if (loadingProgress == null) {
-                                              return child;
-                                            }
-                                            return Center(
-                                              child: CircularProgressIndicator(
-                                                value: loadingProgress
-                                                            .expectedTotalBytes !=
-                                                        null
-                                                    ? loadingProgress
-                                                            .cumulativeBytesLoaded /
-                                                        loadingProgress
-                                                            .expectedTotalBytes!
-                                                    : null,
-                                              ),
-                                            );
-                                          },
-                                          errorBuilder:
-                                              (context, error, stackTrace) =>
-                                                  Container(
-                                            alignment: Alignment.center,
-                                            height: 140,
-                                            child: const Stack(
-                                              children: [
-                                                Placeholder(),
-                                                Center(
-                                                  child: Text(
-                                                    "Unable to load image",
-                                                    style: TextStyle(
-                                                        color: Colors.white),
-                                                  ),
-                                                )
-                                              ],
-                                            ),
-                                          ),
-                                        ),
+                                  body: Column(children: [
+                                    CustomElevatedButton(
+                                        (_coverImage == null ||
+                                                _coverImage == "")
+                                            ? "Add Image"
+                                            : "Edit Image",
+                                        onPressed: () async {
+                                      String img = "";
+                                      img = await Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                              builder: (context) => Camera(
+                                                  navigation: (imagePath) =>
+                                                      Navigator.pop(context,
+                                                          imagePath))));
+
+                                      setState(() => _coverImage = img);
+                                    }),
+                                    (_coverImage != null && _coverImage != "")
+                                        ? getImageDisplay(_coverImage!)
+                                        : Container(),
+                                  ]),
                                   isExpanded: _isCoverImageExpanded,
                                   canTapOnHeader: true)
                             ]),
@@ -335,7 +310,10 @@ class _AddManualState extends State<AddManual> {
                                             tagSelectionDialog(_tagFormKey,
                                                 bookTags: _bookTags));
                                     if (tagSelection != "Cancel") {
-                                      setState(() => _bookTags = tagSelection);
+                                      setState(() {
+                                        _bookTags = tagSelection;
+                                        _bookTags.addAll(_tagsNotInDb);
+                                      });
                                     }
                                   },
                                   child: const Text(
@@ -352,6 +330,16 @@ class _AddManualState extends State<AddManual> {
                                   children: _bookTags
                                       .map((x) => Chip(
                                             label: Text(x.tagDesc!),
+                                            deleteIcon: const Icon(
+                                                Icons.cancel_rounded),
+                                            onDeleted: (!x.isInDatabase)
+                                                ? () {
+                                                    if (!x.isInDatabase) {
+                                                      setState(() =>
+                                                          _bookTags.remove(x));
+                                                    }
+                                                  }
+                                                : null,
                                           ))
                                       .toList(),
                                 )
@@ -372,57 +360,93 @@ class _AddManualState extends State<AddManual> {
                           ? "Update"
                           : (widget.mode == MODE_NEW_SHELF)
                               ? "Save Details"
-                              : "Submit", onPressed: () {
+                              : "Submit", onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       String bookId = (widget.mode == MODE_EDIT)
                           ? widget.bookRecord!.bookId
                           : ObjectId().toString();
-                      Book data = Book(bookId,
-                          title: _txtTitle.text,
-                          subTitle: _txtSubtitle.text,
-                          author: _txtAuthor.text,
-                          publisher: _txtPublisher.text,
-                          description: _txtDescription.text,
-                          userNotes: _txtNotes.text,
-                          location: _txtLocation.text,
-                          bookRating: _bookRating,
-                          isRead: _isRead,
-                          seriesNumber: int.parse(_txtSeriesNumber.text),
-                          isbnCode: _txtIsbnCode.text,
-                          ownershipStatus: ownershipSelection,
-                          coverImage: _coverImage,
-                          tags: _bookTags);
 
-                      if (widget.mode == MODE_NEW_SHELF) {
-                        //* If New Shelf, return details
-                        Navigator.pop(context, {"book": data, "shelf": shelf});
-                      } else {
-                        //* Else, save to database
-                        bool realmSuccess = ModelHelper.addNewBook(data, shelf,
-                            oldShelfId: widget.shelfId,
-                            isUpdate: (widget.mode == MODE_EDIT));
+                      String newPath = "";
 
-                        if (realmSuccess) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text("Book has been saved!"),
-                                  showCloseIcon: true));
-                          Navigator.of(context).pushAndRemoveUntil(
-                              MaterialPageRoute(
-                                  builder: (c) => const AppScaffold()),
-                              (route) => false);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                              content: Text(
-                                  "Error saving book to database. Please try again!"),
-                              showCloseIcon: true));
+                      //* Process Cover Image
+                      if (_coverImage != null && _coverImage != "") {
+                        bool isNetwork =
+                            Uri.parse(_coverImage!).host.isNotEmpty;
+                        if (!isNetwork) {
+                          if (widget.mode == MODE_NEW ||
+                              widget.mode == MODE_NEW_BARCODE ||
+                              widget.mode == MODE_NEW_SHELF ||
+                              (widget.mode == MODE_EDIT &&
+                                  _coverImage !=
+                                      widget.bookRecord!.coverImage)) {
+                            newPath = await saveCoverImage(
+                                _coverImage!, _txtTitle.text);
+                            // .then((value) => newPath = value);
+                            if (context.mounted) {
+                              if (newPath == "") {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text(
+                                            "Unable to save image! Please take a new photo and try again.")));
+                                return;
+                              } else {
+                                _coverImage = newPath;
+                              }
+                            }
+                          }
                         }
                       }
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text(
-                              "Invalid data found. Please verify your input!"),
-                          showCloseIcon: true));
+                      if (context.mounted) {
+                        Book data = Book(bookId,
+                            title: _txtTitle.text,
+                            subTitle: _txtSubtitle.text,
+                            author: _txtAuthor.text,
+                            publisher: _txtPublisher.text,
+                            description: _txtDescription.text,
+                            userNotes: _txtNotes.text,
+                            location: _txtLocation.text,
+                            bookRating: _bookRating,
+                            isRead: _isRead,
+                            seriesNumber: int.parse(_txtSeriesNumber.text),
+                            isbnCode: _txtIsbnCode.text,
+                            ownershipStatus: ownershipSelection,
+                            coverImage: _coverImage,
+                            tags: _bookTags);
+
+                        if (widget.mode == MODE_NEW_SHELF) {
+                          //* If New Shelf, return details
+                          Navigator.pop(
+                              context, {"book": data, "shelf": shelf});
+                        } else {
+                          //* Else, save to database
+                          bool realmSuccess = ModelHelper.addNewBook(
+                              data, shelf,
+                              oldShelfId: widget.shelfId,
+                              isUpdate: (widget.mode == MODE_EDIT));
+
+                          if (realmSuccess) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text("Book has been saved!"),
+                                    showCloseIcon: true));
+                            Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                    builder: (c) => const AppScaffold()),
+                                (route) => false);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        "Error saving book to database. Please try again!"),
+                                    showCloseIcon: true));
+                          }
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                            content: Text(
+                                "Invalid data found. Please verify your input!"),
+                            showCloseIcon: true));
+                      }
                     }
                   }),
 
@@ -702,4 +726,75 @@ generateTagSelection(List<Tag> bookTags) {
     list.add({"Tag": x, "Value": (existing != null)});
   }
   return list;
+}
+
+getImageDisplay(String imgPath) {
+  bool isNetwork = Uri.parse(imgPath).host.isNotEmpty;
+
+  return (isNetwork)
+      ? Image.network(
+          imgPath,
+          height: 140,
+          loadingBuilder: (BuildContext context, Widget child,
+              ImageChunkEvent? loadingProgress) {
+            if (loadingProgress == null) {
+              return child;
+            }
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) => Container(
+              alignment: Alignment.center,
+              height: 140,
+              child: const Stack(
+                children: [
+                  Placeholder(),
+                  Center(
+                    child: Text(
+                      "Unable to load image",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  )
+                ],
+              )),
+        )
+      : Image.file(
+          File(imgPath),
+          height: 140,
+          errorBuilder: (context, error, stackTrace) => Container(
+              alignment: Alignment.center,
+              height: 140,
+              child: const Stack(
+                children: [
+                  Placeholder(),
+                  Center(
+                    child: Text(
+                      "Unable to load image",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  )
+                ],
+              )),
+        );
+}
+
+Future<String> saveCoverImage(String coverImage, String title) async {
+  String newPath = "";
+  try {
+    Directory? externalDir = await getExternalStorageDirectory();
+    newPath = path.join(externalDir!.path, path.basename(coverImage));
+    File sourceFile = File(coverImage);
+    await sourceFile.copy(newPath);
+    await sourceFile.delete();
+  } catch (e) {
+    debugPrint("ERROR: ${e.toString()}");
+    newPath = "";
+  }
+  return newPath;
 }

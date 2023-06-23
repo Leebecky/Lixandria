@@ -13,7 +13,8 @@ class ModelHelper {
         Configuration.local([Shelf.schema, Book.schema, Tag.schema]);
     var realm = Realm(realmConfig);
 
-    final RealmResults<Shelf> shelfList = realm.all<Shelf>();
+    final RealmResults<Shelf> shelfList =
+        realm.query('TRUEPREDICATE SORT(shelfName ASC)');
 
     // if (!realm.isClosed) {
     //   realm.close();
@@ -26,7 +27,8 @@ class ModelHelper {
     final realmConfig = Configuration.local([Tag.schema]);
     var realm = Realm(realmConfig);
 
-    final RealmResults<Tag> tagList = realm.all<Tag>();
+    final RealmResults<Tag> tagList =
+        realm.query('TRUEPREDICATE SORT(tagDesc ASC)');
     return tagList;
   }
 
@@ -126,6 +128,8 @@ class ModelHelper {
   static List<Book> decodeBookFromJson(String apiResponse,
       {int maxResponses = -1}) {
     Map<String, dynamic> json = jsonDecode(apiResponse);
+    List<Tag> tagList =
+        ModelHelper.convertToTag(dataFromResults: ModelHelper.getAllTags());
     List<Book> bookList = [];
 
     int maxLength = (maxResponses == -1) ? json["totalItems"] : maxResponses;
@@ -154,7 +158,21 @@ class ModelHelper {
           publisher:
               (bookData["publisher"] != null) ? bookData["publisher"] : "",
           seriesNumber: 0,
-          tags: [], // TODO: Handle Tags. Cross check existence in db, if !EXIST, then create new tag.
+          tags: (bookData["categories"] != null)
+              ? ((bookData["categories"] as List).map((e) {
+                  Tag? db = tagList
+                      .where((x) =>
+                          x.tagDesc!.toLowerCase() ==
+                          e.toString().toLowerCase())
+                      .firstOrNull;
+                  if (db != null) {
+                    return db;
+                  } else {
+                    return Tag(ObjectId().toString(), tagDesc: e)
+                      ..isInDatabase = false;
+                  }
+                }).toList())
+              : [],
           userNotes: "");
       bookList.add(book);
     }

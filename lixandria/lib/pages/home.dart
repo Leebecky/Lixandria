@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:lixandria/models/model_helper.dart';
 import 'package:lixandria/pages/add/add_manual.dart';
@@ -63,14 +65,13 @@ class _HomeState extends State<Home> {
                                         child: InkWell(
                                           onTap: () => Navigator.of(context)
                                               .push(MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      AddManual(
-                                                        mode: MODE_EDIT,
-                                                        bookRecord: shelf[item],
-                                                        shelfId:
-                                                            shelvesList[index]
-                                                                .shelfId,
-                                                      ))),
+                                            builder: (context) => AddManual(
+                                              mode: MODE_EDIT,
+                                              bookRecord: shelf[item],
+                                              shelfId:
+                                                  shelvesList[index].shelfId,
+                                            ),
+                                          )),
                                           child: Column(children: [
                                             (shelf[item].coverImage == null ||
                                                     shelf[item].coverImage ==
@@ -82,96 +83,15 @@ class _HomeState extends State<Home> {
                                                         fallbackHeight: 140,
                                                       ),
                                                       Center(
-                                                        child: Text(
-                                                            "No image provided",
-                                                            style: TextStyle(
-                                                                color: Colors
-                                                                    .white)),
-                                                      )
-                                                    ],
-                                                  )
-                                                : Image.network(
-                                                    shelf[item].coverImage!,
-                                                    height: 140,
-                                                    loadingBuilder: (BuildContext
-                                                            context,
-                                                        Widget child,
-                                                        ImageChunkEvent?
-                                                            loadingProgress) {
-                                                      if (loadingProgress ==
-                                                          null) {
-                                                        return child;
-                                                      }
-                                                      return Center(
-                                                        child:
-                                                            CircularProgressIndicator(
-                                                          value: loadingProgress
-                                                                      .expectedTotalBytes !=
-                                                                  null
-                                                              ? loadingProgress
-                                                                      .cumulativeBytesLoaded /
-                                                                  loadingProgress
-                                                                      .expectedTotalBytes!
-                                                              : null,
-                                                        ),
-                                                      );
-                                                    },
-                                                    errorBuilder: (context,
-                                                            error,
-                                                            stackTrace) =>
-                                                        Container(
-                                                      alignment:
-                                                          Alignment.center,
-                                                      height: 140,
-                                                      child: const Stack(
-                                                        children: [
-                                                          Placeholder(),
-                                                          Center(
-                                                            child: Text(
-                                                              "Unable to load image",
+                                                          child: Text(
+                                                              "No image provided",
                                                               style: TextStyle(
                                                                   color: Colors
-                                                                      .white),
-                                                            ),
-                                                          )
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                            // Image(
-                                            //     image: NetworkImage(
-                                            //         shelf[item].coverImage!),
-                                            //     height: 140,
-                                            //     loadingBuilder: (context, child,
-                                            //             loadingProgress) =>
-                                            //         const Padding(
-                                            //       padding: EdgeInsets.symmetric(
-                                            //           vertical: 52.0),
-                                            //       child:
-                                            //           CircularProgressIndicator(
-                                            //         color: Colors.white,
-                                            //       ),
-                                            //     ),
-                                            // errorBuilder: (context, error,
-                                            //         stackTrace) =>
-                                            //     Container(
-                                            //   alignment: Alignment.center,
-                                            //   height: 140,
-                                            //   child: const Stack(
-                                            //     children: [
-                                            //       Placeholder(),
-                                            //       Center(
-                                            //         child: Text(
-                                            //           "Unable to load image",
-                                            //           style: TextStyle(
-                                            //               color:
-                                            //                   Colors.white),
-                                            //         ),
-                                            //       )
-                                            //     ],
-                                            //   ),
-                                            // ),
-                                            //   ),
+                                                                      .white)))
+                                                    ],
+                                                  )
+                                                : getImageDisplay(
+                                                    shelf[item].coverImage!),
                                             const Divider(
                                               color: Colors.white,
                                             ),
@@ -199,27 +119,79 @@ class _HomeState extends State<Home> {
                                 width: MediaQuery.of(context).size.width,
                                 height: 330,
                                 child: Container(
-                                  alignment: Alignment.center,
-                                  color: const Color(0xff484357),
-                                  child: const Text(
-                                    "No books on shelf",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 20),
-                                  ),
-                                )),
+                                    alignment: Alignment.center,
+                                    color: const Color(0xff484357),
+                                    child: const Text(
+                                      "No books on shelf",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 20),
+                                    ))),
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 5.0, horizontal: 8),
-                        child: Text(
-                          shelvesList[index].shelfName!,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 20),
-                        ),
-                      ),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 5.0, horizontal: 8),
+                          child: Text(
+                            shelvesList[index].shelfName!,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 20),
+                          ))
                     ],
                   )))),
     );
   }
+}
+
+getImageDisplay(String imgPath) {
+  bool isNetwork = Uri.parse(imgPath).host.isNotEmpty;
+
+  return (isNetwork)
+      ? Image.network(
+          imgPath,
+          height: 140,
+          loadingBuilder: (BuildContext context, Widget child,
+              ImageChunkEvent? loadingProgress) {
+            if (loadingProgress == null) {
+              return child;
+            }
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) => Container(
+              alignment: Alignment.center,
+              height: 140,
+              child: const Stack(
+                children: [
+                  Placeholder(),
+                  Center(
+                      child: Text(
+                    "Unable to load image",
+                    style: TextStyle(color: Colors.white),
+                  ))
+                ],
+              )),
+        )
+      : Image.file(
+          File(imgPath),
+          height: 140,
+          errorBuilder: (context, error, stackTrace) => Container(
+              alignment: Alignment.center,
+              height: 140,
+              child: const Stack(
+                children: [
+                  Placeholder(),
+                  Center(
+                      child: Text(
+                    "Unable to load image",
+                    style: TextStyle(color: Colors.white),
+                  ))
+                ],
+              )),
+        );
 }
