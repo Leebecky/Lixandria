@@ -2,6 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:lixandria/models/shelf.dart';
 import 'package:lixandria/pages/settings/settings.dart';
+import 'package:lixandria/pages/statistics/statistics_main.dart';
 import 'package:realm/realm.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/book.dart';
@@ -55,7 +56,7 @@ class _AppScaffoldState extends State<AppScaffold> {
   int _selectedIndex = 1;
 
   static const List<Widget> _appPages = <Widget>[
-    Text("Statistics"),
+    Statistics(),
     Home(),
     Settings()
   ];

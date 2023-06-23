@@ -50,7 +50,7 @@ class _AddManualState extends State<AddManual> {
   List<Tag> _bookTags = [];
   List<Tag> _tagsNotInDb = [];
 
-  List<String> ownershipStatus = ["Owned", "Borrowed", "Wishlist"];
+  List<String> ownershipStatus = OWNERSHIP_SET;
 
   List<DropdownMenuItem<String>> shelfDropdown = [];
   String ownershipSelection = "";

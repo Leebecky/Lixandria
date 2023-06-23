@@ -68,6 +68,7 @@ dependencies:
   # Statistics Display
   flutter_scatter: ^0.2.0
   fl_chart: ^0.63.0
+  excel: ^2.1.0
   
 
 # Generate app icons

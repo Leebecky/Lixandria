@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:lixandria/constants.dart';
 import 'package:realm/realm.dart';
 
 import 'book.dart';
@@ -30,6 +31,34 @@ class ModelHelper {
     final RealmResults<Tag> tagList =
         realm.query('TRUEPREDICATE SORT(tagDesc ASC)');
     return tagList;
+  }
+
+  // Get all shelves from database
+  static List<Book> getAllBooks() {
+    final realmConfig =
+        Configuration.local([Shelf.schema, Book.schema, Tag.schema]);
+    var realm = Realm(realmConfig);
+
+    final RealmResults<Book> data = realm.all<Book>();
+    List<Book> bookList = data
+        .map((b) => Book(b.bookId,
+            title: b.title,
+            subTitle: b.subTitle,
+            author: b.author,
+            publisher: b.publisher,
+            description: b.description,
+            userNotes: b.userNotes,
+            location: b.location,
+            bookRating: b.bookRating,
+            coverImage: b.coverImage,
+            isRead: b.isRead,
+            isbnCode: b.isbnCode,
+            ownershipStatus: b.ownershipStatus,
+            seriesNumber: b.seriesNumber,
+            tags: convertToTag(data: b.tags)))
+        .toList();
+
+    return bookList;
   }
 
   static List<Shelf> convertToShelf(RealmResults<Shelf> data) {
@@ -154,7 +183,7 @@ class ModelHelper {
               ? bookData["industryIdentifiers"][1]["identifier"]
               : "",
           location: "",
-          ownershipStatus: "Owned",
+          ownershipStatus: OWNERSHIP_OWNED,
           publisher:
               (bookData["publisher"] != null) ? bookData["publisher"] : "",
           seriesNumber: 0,
