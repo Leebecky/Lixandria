@@ -6,6 +6,7 @@ import 'package:lixandria/widgets/customElevatedButton.dart';
 import 'package:lixandria/widgets/customTextfield.dart';
 import 'package:http/http.dart';
 
+import '../../widgets/customAlertDialog.dart';
 import 'add_spine_book.dart';
 
 class SpineAddApi extends StatefulWidget {
@@ -20,6 +21,7 @@ class SpineAddApi extends StatefulWidget {
 class _SpineAddApiState extends State<SpineAddApi> {
   late Future<List<BookSegment>> segmentResults;
   List<String> spineText = [];
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -36,7 +38,7 @@ class _SpineAddApiState extends State<SpineAddApi> {
           Map<String, TextEditingController> textEditingControllers = {};
 
           for (int i = 0; i < snapshot.data!.length; i++) {
-            spineText.add(snapshot.data![i].spineText!);
+            // spineText.add(snapshot.data![i].spineText!);
             var textEditingController =
                 TextEditingController(text: snapshot.data![i].spineText);
             textEditingControllers.putIfAbsent(
@@ -56,47 +58,102 @@ class _SpineAddApiState extends State<SpineAddApi> {
               foregroundColor: Colors.white,
               backgroundColor: const Color(0xff285430),
             ),
-            body: Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      return Slidable(
-                        endActionPane:
-                            ActionPane(motion: const ScrollMotion(), children: [
-                          SlidableAction(
-                            onPressed: (context) =>
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text("Delete..."))),
-                            icon: Icons.delete_rounded,
-                            label: "Delete",
-                            foregroundColor: Colors.white,
-                            backgroundColor: Colors.red,
-                          )
-                        ]),
-                        child: ListTile(
-                          title: Padding(
-                            padding:
-                                const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 0),
-                            child: Image.memory(
-                                base64Decode(snapshot.data![index].imgBuffer!)),
-                          ),
-                          subtitle: CustomTextField(
-                              textEditingControllers[index.toString()]!,
-                              "Detected Spine Text",
-                              errorMsg: "Text cannot be empty!"),
+            body: Form(
+              key: _formKey,
+              child: (snapshot.data!.isEmpty)
+                  ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Text(
+                          "No book spines found in the image. Please take another photo.",
+                          style: TextStyle(fontSize: 20),
+                          textAlign: TextAlign.center,
                         ),
-                      );
-                    },
-                  ),
-                ),
-                CustomElevatedButton("Submit", onPressed: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) =>
-                          SpineBookDisplay(spineText: spineText)));
-                })
-              ],
+                      ),
+                    )
+                  : Column(
+                      children: [
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: snapshot.data!.length,
+                            itemBuilder: (context, index) {
+                              return Slidable(
+                                endActionPane: ActionPane(
+                                    motion: const ScrollMotion(),
+                                    children: [
+                                      SlidableAction(
+                                        onPressed: (context) => showDialog(
+                                            context: context,
+                                            builder: (context) =>
+                                                CustomAlertDialog(
+                                                    context,
+                                                    "Remove book?",
+                                                    "Would you like to remove this book spine?",
+                                                    confirmOnPressed: () {
+                                                  Navigator.of(context).pop();
+                                                  setState(() {
+                                                    for (int i = 0;
+                                                        i <
+                                                            snapshot
+                                                                .data!.length;
+                                                        i++) {
+                                                      snapshot.data![i]
+                                                              .spineText =
+                                                          textEditingControllers[
+                                                                  i.toString()]!
+                                                              .text;
+                                                    }
+                                                  });
+
+                                                  snapshot.data!
+                                                      .removeAt(index);
+                                                  textEditingControllers
+                                                      .remove(index.toString());
+                                                })),
+                                        icon: Icons.delete_rounded,
+                                        label: "Delete",
+                                        foregroundColor: Colors.white,
+                                        backgroundColor: Colors.red,
+                                      )
+                                    ]),
+                                child: ListTile(
+                                  title: Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                        8.0, 8.0, 8.0, 0),
+                                    child: Image.memory(base64Decode(
+                                        snapshot.data![index].imgBuffer!)),
+                                  ),
+                                  subtitle: CustomTextField(
+                                      textEditingControllers[index.toString()]!,
+                                      "Detected Spine Text",
+                                      isMultiline: true,
+                                      errorMsg: "Text cannot be empty!"),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        CustomElevatedButton("Submit", onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            spineText = [];
+                            for (int i = 0; i < snapshot.data!.length; i++) {
+                              spineText.add(
+                                  textEditingControllers[i.toString()]!.text);
+                            }
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) =>
+                                    SpineBookDisplay(spineText: spineText)));
+                          } else {
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(const SnackBar(
+                              content:
+                                  Text("Detected Spine Text cannot be empty!"),
+                              showCloseIcon: true,
+                            ));
+                          }
+                        })
+                      ],
+                    ),
             ),
           );
         } else if (snapshot.hasError) {
@@ -114,7 +171,14 @@ class _SpineAddApiState extends State<SpineAddApi> {
                 backgroundColor: const Color(0xff285430),
               ),
               body: Center(
-                child: Text("An error has occured: ${snapshot.error}"),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Text(
+                    "An error has occurred: ${snapshot.error.toString()}",
+                    style: const TextStyle(fontSize: 20),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               ));
         }
 

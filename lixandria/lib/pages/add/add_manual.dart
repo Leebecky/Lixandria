@@ -361,6 +361,7 @@ class _AddManualState extends State<AddManual> {
                           : (widget.mode == MODE_NEW_SHELF)
                               ? "Save Details"
                               : "Submit", onPressed: () async {
+                    //* Validate Form
                     if (_formKey.currentState!.validate()) {
                       String bookId = (widget.mode == MODE_EDIT)
                           ? widget.bookRecord!.bookId
@@ -441,12 +442,12 @@ class _AddManualState extends State<AddManual> {
                                     showCloseIcon: true));
                           }
                         }
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                            content: Text(
-                                "Invalid data found. Please verify your input!"),
-                            showCloseIcon: true));
                       }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text(
+                              "Invalid data found. Please verify your input!"),
+                          showCloseIcon: true));
                     }
                   }),
 

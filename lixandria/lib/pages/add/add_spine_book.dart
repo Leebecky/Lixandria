@@ -11,6 +11,7 @@ import '../../models/model_helper.dart';
 import 'package:http/http.dart';
 
 import '../../models/shelf.dart';
+import '../../widgets/customAlertDialog.dart';
 import '../../widgets/customDropdown.dart';
 
 class SpineBookDisplay extends StatefulWidget {
@@ -26,37 +27,39 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
   late Future<List<Book>> booksFromAPI;
   List<DropdownMenuItem<String>> shelfDropdown = [];
 
+  final _shelfFormKey = GlobalKey<FormState>();
   Map<String, GlobalKey<FormState>> _formKeys = {};
 
   @override
   void initState() {
     super.initState();
     booksFromAPI = fetchBookData(widget.spineText);
-    shelfDropdown.addAll(prepareShelfDropdown());
+    List<DropdownMenuItem<String>> list = generateShelfDropdown(context);
+    shelfDropdown.addAll(list);
 
-    DropdownMenuItem<String> addShelf = DropdownMenuItem<String>(
-      value: "-1",
-      child: const Row(
-        children: [
-          Icon(Icons.add_circle_outline_rounded),
-          Padding(
-            padding: EdgeInsets.only(left: 8.0),
-            child: Text(
-              "Add New Shelf",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-      onTap: () {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("Test")));
-      },
-    );
+    // DropdownMenuItem<String> addShelf = DropdownMenuItem<String>(
+    //   value: "-1",
+    //   child: const Row(
+    //     children: [
+    //       Icon(Icons.add_circle_outline_rounded),
+    //       Padding(
+    //         padding: EdgeInsets.only(left: 8.0),
+    //         child: Text(
+    //           "Add New Shelf",
+    //           style: TextStyle(fontWeight: FontWeight.bold),
+    //         ),
+    //       ),
+    //     ],
+    //   ),
+    //   onTap: () {
+    //     ScaffoldMessenger.of(context)
+    //         .showSnackBar(const SnackBar(content: Text("Test")));
+    //   },
+    // );
 
-    if (shelfDropdown[0].value != "-1") {
-      shelfDropdown.insert(0, addShelf);
-    }
+    // if (shelfDropdown[0].value != "-1") {
+    //   shelfDropdown.insert(0, addShelf);
+    // }
   }
 
   @override
@@ -67,8 +70,12 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
         if (snapshot.hasData) {
           for (int i = 0; i < snapshot.data!.length; i++) {
             //* Generating Shelf Dropdown controllers
+
             shelfSelection.putIfAbsent(
-                i.toString(), () => shelfDropdown.last.value!);
+                i.toString(),
+                () => (shelfDropdown.length > 1)
+                    ? shelfDropdown.last.value!
+                    : "-1");
             //* Generating Form Keys
             _formKeys.putIfAbsent(i.toString(), () => GlobalKey<FormState>());
           }
@@ -97,15 +104,28 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
                               children: [
                                 SlidableAction(
                                   onPressed: (context) {
-                                    setState(() {
-                                      snapshot.data!.removeAt(index);
-                                      shelfSelection.remove(index.toString());
-                                      _formKeys.remove(index.toString());
-                                    });
+                                    showDialog(
+                                        context: context,
+                                        builder: (context) => CustomAlertDialog(
+                                                context,
+                                                "Remove book?",
+                                                "Would you like to remove this book?",
+                                                confirmOnPressed: () {
+                                              Navigator.of(context).pop();
+                                              setState(() {
+                                                snapshot.data!.removeAt(index);
+                                                shelfSelection
+                                                    .remove(index.toString());
+                                                _formKeys
+                                                    .remove(index.toString());
+                                              });
+                                            }));
 
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content: Text("Removal")));
+                                    // setState(() {
+                                    //   snapshot.data!.removeAt(index);
+                                    //   shelfSelection.remove(index.toString());
+                                    //   _formKeys.remove(index.toString());
+                                    // });
                                   },
                                   icon: Icons.delete_rounded,
                                   foregroundColor: Colors.white,
@@ -119,27 +139,47 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
                                   fontWeight: FontWeight.bold, fontSize: 20),
                             ),
                             subtitle: Form(
-                                key: _formKeys[index.toString()],
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(snapshot.data![index].author!),
-                                    CustomDropdown(
-                                        shelfSelection[index.toString()],
-                                        labelTxt: "Shelf",
-                                        dropdownItems: shelfDropdown,
-                                        validateFun: (String? val) {
-                                      if (val == "-1") {
-                                        return "Please select a valid shelf!";
-                                      }
-                                      return null;
-                                    }, onChangeFun: (String? val) {
+                              key: _formKeys[index.toString()],
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(snapshot.data![index].author!),
+                                  CustomDropdown(
+                                      shelfSelection[index.toString()],
+                                      labelTxt: "Shelf",
+                                      dropdownItems: shelfDropdown,
+                                      validateFun: (String? val) {
+                                    if (val == "-1") {
+                                      return "Please select a valid shelf!";
+                                    }
+                                    return null;
+                                  }, onChangeFun: (String? val) {
+                                    if (val == "-1") {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => addShelfDialog(
+                                          context,
+                                          _shelfFormKey,
+                                          onComplete: () => setState(() {
+                                            shelfDropdown =
+                                                generateShelfDropdown(context);
+                                            shelfSelection[index.toString()] =
+                                                shelfDropdown[
+                                                        shelfDropdown.length -
+                                                            1]
+                                                    .value!;
+                                          }),
+                                        ),
+                                      );
+                                    } else {
                                       setState(() {
                                         shelfSelection[index.toString()] = val!;
                                       });
-                                    }),
-                                  ],
-                                )),
+                                    }
+                                  }),
+                                ],
+                              ),
+                            ),
                             leading: SizedBox(
                               width: 50,
                               child: Image.network(
@@ -256,11 +296,6 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
 
   Future<List<Book>> fetchBookData(List<String> spineText) async {
     List<Book> list = [];
-    spineText = [
-      "Harry Potter and the Philosopher's Stone",
-      "Mary Norton The Borrowers Aloft",
-      "The Hobbit"
-    ];
 
     for (String text in spineText) {
       final response = await get(
@@ -284,7 +319,7 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
     return list;
   }
 
-  prepareShelfDropdown() {
+  List<DropdownMenuItem<String>> generateShelfDropdown(context) {
     RealmResults<Shelf> shelfDb = ModelHelper.getAllShelves();
     List<DropdownMenuItem<String>> list = shelfDb
         .map<DropdownMenuItem<String>>(
@@ -292,6 +327,24 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
               value: x.shelfId, child: Text(x.shelfName!)),
         )
         .toList();
+
+    //^ Inititialise [Add New Shelf] option
+    DropdownMenuItem<String> addShelf = const DropdownMenuItem<String>(
+        value: "-1",
+        child: Row(
+          children: [
+            Icon(Icons.add_circle_outline_rounded),
+            Padding(
+              padding: EdgeInsets.only(left: 8.0),
+              child: Text(
+                "Add New Shelf",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ));
+    list.insert(0, addShelf);
+
     return list;
   }
 }

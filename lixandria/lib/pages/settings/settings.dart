@@ -8,7 +8,6 @@ import 'package:lixandria/pages/settings/manage_tags.dart';
 import 'package:lixandria/widgets/customAlertDialog.dart';
 import 'package:lixandria/widgets/customElevatedButton.dart';
 import 'package:realm/realm.dart';
-import 'package:csv/csv.dart';
 import '../../models/book.dart';
 import '../../models/model_helper.dart';
 import '../../models/shelf.dart';

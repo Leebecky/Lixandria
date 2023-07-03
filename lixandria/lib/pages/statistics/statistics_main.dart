@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:fl_chart/fl_chart.dart';
 import 'package:lixandria/pages/statistics/statistics_tag_distribution.dart';
 import 'package:lixandria/pages/statistics/statistics_book_by_ownership.dart';
 import 'package:lixandria/pages/statistics/statistics_book_by_shelves.dart';

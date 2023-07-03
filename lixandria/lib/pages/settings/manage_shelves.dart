@@ -201,6 +201,12 @@ addShelfDialog(context, formKey, {isUpdate, Shelf? shelfData, onComplete}) {
               content: Text(msg),
               showCloseIcon: true,
             ));
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text("Please provide the shelf name"),
+              showCloseIcon: true,
+              duration: Duration(seconds: 1),
+            ));
           }
         },
         child: const Text(

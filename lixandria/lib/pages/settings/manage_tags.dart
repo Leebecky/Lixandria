@@ -173,6 +173,12 @@ addTagDialog(context, formKey, {isUpdate, Tag? tagData, onComplete}) {
               content: Text(msg),
               showCloseIcon: true,
             ));
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text("Please provide the tag description"),
+              showCloseIcon: true,
+              duration: Duration(seconds: 1),
+            ));
           }
         },
         child: const Text(

@@ -119,8 +119,12 @@ class _HomeState extends State<Home> {
                                 width: MediaQuery.of(context).size.width,
                                 height: 330,
                                 child: Container(
+                                    margin: const EdgeInsets.only(left: 5),
                                     alignment: Alignment.center,
-                                    color: const Color(0xff484357),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(15),
+                                      color: const Color(0xff484357),
+                                    ),
                                     child: const Text(
                                       "No books on shelf",
                                       textAlign: TextAlign.center,
@@ -128,7 +132,8 @@ class _HomeState extends State<Home> {
                                           color: Colors.white, fontSize: 20),
                                     ))),
                       ),
-                      Padding(
+                      Container(
+                          margin: const EdgeInsets.only(left: 5),
                           padding: const EdgeInsets.symmetric(
                               vertical: 5.0, horizontal: 8),
                           child: Text(

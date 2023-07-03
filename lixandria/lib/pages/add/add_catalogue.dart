@@ -9,7 +9,6 @@ import 'package:lixandria/widgets/customTextfield.dart';
 import '../../constants.dart';
 import 'add_manual.dart';
 import 'add_spine.dart';
-import 'add_spine_camera.dart';
 
 class AddCatalogue extends StatefulWidget {
   const AddCatalogue({super.key});
@@ -83,7 +82,7 @@ class _AddCatalogueState extends State<AddCatalogue> {
                 btnSize: "medium",
                 specificWidth: MediaQuery.of(context).size.width / 1.5,
                 onPressed: () => scanBarcodeNormal()),
-            CustomElevatedButton("Scan Book Spine",
+            CustomElevatedButton("Snap Book Spine",
                 btnSize: "medium",
                 specificWidth: MediaQuery.of(context).size.width / 1.5,
                 onPressed: () {
@@ -151,6 +150,12 @@ configureIpAddress(BuildContext context, TextEditingController ipAddress,
                       //       ipAddress: "$httpHeader${ipAddress.text}$apiAddress",
                       //     )
                       ));
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text("Please provide the IP Address"),
+                    showCloseIcon: true,
+                    duration: Duration(seconds: 1),
+                  ));
                 }
               },
               child: const Text(

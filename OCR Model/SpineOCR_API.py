@@ -13,11 +13,9 @@ app = Flask(__name__)
 east_model_path = "east_text_detection.pb"
 
 # Spine Segmentation & OCR Functions
-
-
 def preprocessing(img):
     # resize image
-    img_resized = resizeImage(img, scale=50)
+    img_resized = resizeImage(img, scale=25)
 
     # Convert to grayscale
     img_gray = cv2.cvtColor(img_resized, cv2.COLOR_RGB2GRAY)
@@ -146,6 +144,7 @@ def east(img, resize=(640, 640)):
 
     return results
 
+
 def predictions(prob_score, geo):
     # Returns a bounding box and probability score if it is more than minimum confidence
     # Code referenced from (Rosebrock, 2018): https://pyimagesearch.com/2018/08/20/opencv-text-detection-east-text-detector/
@@ -201,13 +200,11 @@ def east_meets_hough(east, coords, img):
     # Identify spine boundaries based on hough lines and detected text
     for i in range(0, len(sorted_coords)):
         if (i == 0):  # Line 0 as bottom line
-            get_spine_boundaries(east, img, sorted_y,
-                                 book_spine_set, -1, partial_segment,
-                                 sorted_intersect)
+            get_spine_boundaries(east, img, sorted_y, book_spine_set, -1,
+                                 partial_segment, sorted_intersect)
 
-        get_spine_boundaries(east, img, sorted_y,
-                             book_spine_set, i, partial_segment,
-                             sorted_intersect)
+        get_spine_boundaries(east, img, sorted_y, book_spine_set, i,
+                             partial_segment, sorted_intersect)
 
     for i in range(0, len(partial_segment)):
         coord_index = partial_segment[i]["index"]
@@ -273,7 +270,7 @@ def get_spine_boundaries(east, img, sorted_y, book_spine_set, i,
                     "bottom_right": int_bottom_right,
                     "index": i
                 })
-                
+
         if (isWithinTop and isWithinBottom):
             if ((int_top_left, int_top_right, int_bottom_right,
                  int_bottom_left) not in book_spine_set):
@@ -297,27 +294,32 @@ def spine_segment(book_spine_set, disp, ocr_reader):
         cv2.fillPoly(mask, [pts], (255, 255, 255))
 
         filt_img = disp & mask
-        spine_segment = filt_img.copy()
+
+        book_spine_segment = filt_img.copy()
 
         highest_point = spine_coords[
             0] if spine_coords[0] < spine_coords[1] else spine_coords[1]
         lower_point = spine_coords[
             2] if spine_coords[2] > spine_coords[3] else spine_coords[3]
-        
+
         highest_point = 0 if highest_point < 0 else highest_point
         lower_point = img_width if lower_point > img_width else lower_point
 
-        spine_segment = spine_segment[highest_point:lower_point, :]
-        spine_segment = resizeImage(spine_segment, 150)
-        results = ocr_reader.ocr(spine_segment, cls=True)
+        book_spine_segment = book_spine_segment[highest_point:lower_point, :]
+
+        if (book_spine_segment.shape[0] <= 0 or book_spine_segment.shape[1] <= 0): continue
+        book_spine_segment = resizeImage(book_spine_segment, 150)
+        results = ocr_reader.ocr(book_spine_segment, cls=True)
 
         # Encode image to return
-        __, img_encode = cv2.imencode(".png", spine_segment)
+        __, img_encode = cv2.imencode(".png", book_spine_segment)
         jpg_as_text = base64.b64encode(img_encode).decode()
 
         spine_text = evaluate_ocr_output(results)
 
         if (spine_text != ""):
+            # cv2.imshow("Filt",spine_segment)
+            # cv2.waitKey()
             # Preparing API Response
             json_data = {'img': jpg_as_text, "spine_text": spine_text}
             with open('./0.json', 'w') as outfile:
@@ -359,44 +361,49 @@ def evaluate_ocr_output(ocr):
 # API Code
 @app.route("/Lixandria_API", methods=["GET"])
 def get():
-    return "<p>GET request unavailable</p>"
+    return "<p>GET request unavailable 1.3</p>"
 
 
 @app.route("/Lixandria_API", methods=["POST"])
 def SpineOCR():
-    # Receive and Read Image
-    shelf_image = request.files.get("image")
-    image_buffer = np.fromfile(shelf_image, np.uint8)
-    img = cv2.imdecode(image_buffer, flags=cv2.IMREAD_COLOR)
+    try:
+        # Receive and Read Image
+        shelf_image = request.files.get("image")
+        image_buffer = np.fromfile(shelf_image, np.uint8)
+        
+        img = cv2.imdecode(image_buffer, flags=cv2.IMREAD_COLOR)
+        # Process Image
 
-    # Process Image
+        # Pre Processing:
+        img_resized, img_gray = preprocessing(img)
 
-    # Pre Processing:
-    img_resized, img_gray = preprocessing(img)
+        # Canny Edge Detection
+        img_canny = cannyEdge(img_gray)
+        cv2.imshow("img", img_canny)
+        cv2.waitKey()
+        
+        # Hough Lines
+        disp = img_resized.copy()
+        # disp = cv2.rotate(disp, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        # img_canny = cv2.rotate(img_canny, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        hough_lines = get_hough_lines(img_canny, disp)
+        coords = get_hough_coords(hough_lines)
+        east_boxes = east(disp)
 
-    # Canny Edge Detection
-    img_canny = cannyEdge(img_gray)
+        # Image Segmentation
+        ocr_reader = PaddleOCR(use_angle_cls=True,
+                               lang='en',
+                               ocr_version="PP-OCRv3")
+        # , cls_model_dir="en_PP-OCRv3_rec_train"
+        book_spine_set = east_meets_hough(east_boxes, coords, disp)
+        api_response = spine_segment(book_spine_set, disp, ocr_reader)
 
-    # Hough Lines
-    disp = img_resized.copy()
-    disp = cv2.rotate(disp, cv2.ROTATE_90_COUNTERCLOCKWISE)
-    img_canny = cv2.rotate(img_canny, cv2.ROTATE_90_COUNTERCLOCKWISE)
-    hough_lines = get_hough_lines(img_canny, disp)
-    coords = get_hough_coords(hough_lines)
-    east_boxes = east(disp)
-
-    # Image Segmentation
-    ocr_reader = PaddleOCR(use_angle_cls=True,
-                           lang='en',
-                           ocr_version="PP-OCRv3")
-    # , cls_model_dir="en_PP-OCRv3_rec_train"
-    book_spine_set = east_meets_hough(east_boxes, coords, disp)
-    api_response = spine_segment(book_spine_set, disp, ocr_reader)
-
-    return jsonify(api_response)
+        return jsonify(api_response)
+    except Exception as error:
+        return jsonify({"status": str(error)})
 
 
 # Run the API
-# if __name__ == "__main__":
-#     app.run(host="0.0.0.0", port=8000)
-serve(app, host='0.0.0.0', port=8000, threads=1) #WAITRESS!
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
+# serve(app, host='0.0.0.0', port=8000, threads=1)  #WAITRESS!

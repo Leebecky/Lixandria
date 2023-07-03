@@ -63,7 +63,22 @@ class _AddBarcodeState extends State<AddBarcode> {
             );
           }
         } else if (snapshot.hasError) {
-          return Text('${snapshot.error}');
+          return Scaffold(
+              appBar: AppBar(
+                title: const Text("Add Book"),
+                leading: IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: Colors.white,
+                  ),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                foregroundColor: Colors.white,
+                backgroundColor: const Color(0xff285430),
+              ),
+              body: Center(
+                child: Text("An error has occured: ${snapshot.error}"),
+              ));
         }
 
         // By default, show a loading spinner.

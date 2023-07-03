@@ -19,13 +19,6 @@ class _AddSpineCameraState extends State<AddSpineCamera> {
   void initState() {
     initCamera();
     super.initState();
-
-    // controller = CameraController(cameras![0], ResolutionPreset.max);
-    // controller?.initialize().then((_) {
-    //   if (!mounted) {
-    //     return;
-    //   }
-    // });
   }
 
   @override
@@ -87,7 +80,10 @@ class _AddSpineCameraState extends State<AddSpineCamera> {
                           // await controller!.dispose();
                         }
                       } catch (e) {
-                        print(e);
+                        debugPrint(e.toString());
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(
+                                "An error has occurred: ${e.toString()}")));
                       }
                     }),
               )
