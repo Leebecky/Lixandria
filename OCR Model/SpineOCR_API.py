@@ -384,8 +384,8 @@ def SpineOCR():
         
         # Hough Lines
         disp = img_resized.copy()
-        # disp = cv2.rotate(disp, cv2.ROTATE_90_COUNTERCLOCKWISE)
-        # img_canny = cv2.rotate(img_canny, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        disp = cv2.rotate(disp, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        img_canny = cv2.rotate(img_canny, cv2.ROTATE_90_COUNTERCLOCKWISE)
         hough_lines = get_hough_lines(img_canny, disp)
         coords = get_hough_coords(hough_lines)
         east_boxes = east(disp)

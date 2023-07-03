@@ -31,7 +31,7 @@ Shelf Add:
     ✔ Save to Database @done(23-06-05 00:32)
 
 Book Spine Scan:
-    ☐ Google Books API search using extracted text
+    ✔ Google Books API search using extracted text @done(23-07-04 06:00)
     ✔ Implement spine delete function @done(23-07-03 14:39)
     ☐ Fix API results
     ✔ Prevent empty text search @done(23-07-03 17:57)
@@ -49,8 +49,8 @@ Fixes: @high
         Fixed using Waitress and Task Scheduler to deploy on startup rather than relying on IIS
     ✔ Prevent submission of blank Server address @done(23-06-04 23:13)
     
-    ☐ OCR
-        ☐ Allow user to change the retrieved book from Google API for OCR
+    ✔ OCR @done(23-07-04 06:00)
+        ✔ Allow user to change the retrieved book from Google API for OCR @done(23-07-04 06:00)
         ✔ Handle no books found @done(23-07-03 18:26)
 
     ✔ API @done(23-07-03 18:23)

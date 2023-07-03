@@ -155,17 +155,17 @@ class ModelHelper {
   }
 
   static List<Book> decodeBookFromJson(String apiResponse,
-      {int maxResponses = -1}) {
+      {int maxResponses = 1}) {
     Map<String, dynamic> json = jsonDecode(apiResponse);
     List<Tag> tagList =
         ModelHelper.convertToTag(dataFromResults: ModelHelper.getAllTags());
     List<Book> bookList = [];
-
-    int maxLength = (maxResponses == -1) ? json["totalItems"] : maxResponses;
+    int maxLength = (int.parse(json["totalItems"].toString()) < maxResponses)
+        ? int.parse(json["totalItems"].toString())
+        : maxResponses;
 
     for (var i = 0; i < maxLength; i++) {
       var bookData = json["items"][i]["volumeInfo"];
-
       Book book = Book(ObjectId().toString(),
           title: (bookData["title"] != null) ? bookData["title"] : "",
           subTitle: (bookData["subtitle"] != null) ? bookData["subtitle"] : "",
@@ -180,7 +180,9 @@ class ModelHelper {
               (bookData["description"] != null) ? bookData["description"] : "",
           isRead: false,
           isbnCode: (bookData["industryIdentifiers"] != null)
-              ? bookData["industryIdentifiers"][1]["identifier"]
+              ? (bookData["industryIdentifiers"] as List).length > 1
+                  ? bookData["industryIdentifiers"][1]["identifier"]
+                  : bookData["industryIdentifiers"][0]["identifier"]
               : "",
           location: "",
           ownershipStatus: OWNERSHIP_OWNED,
@@ -205,7 +207,6 @@ class ModelHelper {
           userNotes: "");
       bookList.add(book);
     }
-
     return bookList;
   }
 

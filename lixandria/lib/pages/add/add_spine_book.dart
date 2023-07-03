@@ -24,60 +24,38 @@ class SpineBookDisplay extends StatefulWidget {
 
 class _SpineBookDisplayState extends State<SpineBookDisplay> {
   Map<String, String> shelfSelection = {};
-  late Future<List<Book>> booksFromAPI;
+  late Future<Map<int, List<Book>>> booksFromAPI;
   List<DropdownMenuItem<String>> shelfDropdown = [];
-
+  Map<int, int> bookSelectionCopy = {};
   final _shelfFormKey = GlobalKey<FormState>();
   Map<String, GlobalKey<FormState>> _formKeys = {};
-
+  Map<int, int> bookSelection = {};
   @override
   void initState() {
     super.initState();
     booksFromAPI = fetchBookData(widget.spineText);
     List<DropdownMenuItem<String>> list = generateShelfDropdown(context);
     shelfDropdown.addAll(list);
-
-    // DropdownMenuItem<String> addShelf = DropdownMenuItem<String>(
-    //   value: "-1",
-    //   child: const Row(
-    //     children: [
-    //       Icon(Icons.add_circle_outline_rounded),
-    //       Padding(
-    //         padding: EdgeInsets.only(left: 8.0),
-    //         child: Text(
-    //           "Add New Shelf",
-    //           style: TextStyle(fontWeight: FontWeight.bold),
-    //         ),
-    //       ),
-    //     ],
-    //   ),
-    //   onTap: () {
-    //     ScaffoldMessenger.of(context)
-    //         .showSnackBar(const SnackBar(content: Text("Test")));
-    //   },
-    // );
-
-    // if (shelfDropdown[0].value != "-1") {
-    //   shelfDropdown.insert(0, addShelf);
-    // }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Book>>(
+    return FutureBuilder<Map<int, List<Book>>>(
       future: booksFromAPI,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
+          List<int> keys = snapshot.data!.keys.toList();
           for (int i = 0; i < snapshot.data!.length; i++) {
+            bookSelection.putIfAbsent(keys[i], () => 0);
             //* Generating Shelf Dropdown controllers
-
             shelfSelection.putIfAbsent(
-                i.toString(),
+                keys[i].toString(),
                 () => (shelfDropdown.length > 1)
                     ? shelfDropdown.last.value!
                     : "-1");
             //* Generating Form Keys
-            _formKeys.putIfAbsent(i.toString(), () => GlobalKey<FormState>());
+            _formKeys.putIfAbsent(
+                keys[i].toString(), () => GlobalKey<FormState>());
           }
 
           return Scaffold(
@@ -98,116 +76,147 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
                   Expanded(
                     child: ListView.separated(
                       itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) => Slidable(
-                          endActionPane: ActionPane(
-                              motion: const ScrollMotion(),
-                              children: [
-                                SlidableAction(
-                                  onPressed: (context) {
-                                    showDialog(
-                                        context: context,
-                                        builder: (context) => CustomAlertDialog(
-                                                context,
-                                                "Remove book?",
-                                                "Would you like to remove this book?",
-                                                confirmOnPressed: () {
-                                              Navigator.of(context).pop();
-                                              setState(() {
-                                                snapshot.data!.removeAt(index);
-                                                shelfSelection
-                                                    .remove(index.toString());
-                                                _formKeys
-                                                    .remove(index.toString());
-                                              });
-                                            }));
-
-                                    // setState(() {
-                                    //   snapshot.data!.removeAt(index);
-                                    //   shelfSelection.remove(index.toString());
-                                    //   _formKeys.remove(index.toString());
-                                    // });
-                                  },
-                                  icon: Icons.delete_rounded,
-                                  foregroundColor: Colors.white,
-                                  backgroundColor: Colors.red,
-                                )
-                              ]),
-                          child: ListTile(
-                            title: Text(
-                              snapshot.data![index].title!,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 20),
-                            ),
-                            subtitle: Form(
-                              key: _formKeys[index.toString()],
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                      itemBuilder: (context, ind) {
+                        int index = keys[ind];
+                        return Slidable(
+                            endActionPane: ActionPane(
+                                motion: const ScrollMotion(),
                                 children: [
-                                  Text(snapshot.data![index].author!),
-                                  CustomDropdown(
-                                      shelfSelection[index.toString()],
-                                      labelTxt: "Shelf",
-                                      dropdownItems: shelfDropdown,
-                                      validateFun: (String? val) {
-                                    if (val == "-1") {
-                                      return "Please select a valid shelf!";
-                                    }
-                                    return null;
-                                  }, onChangeFun: (String? val) {
-                                    if (val == "-1") {
+                                  SlidableAction(
+                                    onPressed: (context) {
                                       showDialog(
-                                        context: context,
-                                        builder: (context) => addShelfDialog(
-                                          context,
-                                          _shelfFormKey,
-                                          onComplete: () => setState(() {
-                                            shelfDropdown =
-                                                generateShelfDropdown(context);
-                                            shelfSelection[index.toString()] =
-                                                shelfDropdown[
-                                                        shelfDropdown.length -
-                                                            1]
-                                                    .value!;
-                                          }),
-                                        ),
-                                      );
-                                    } else {
-                                      setState(() {
-                                        shelfSelection[index.toString()] = val!;
-                                      });
-                                    }
-                                  }),
-                                ],
-                              ),
-                            ),
-                            leading: SizedBox(
-                              width: 50,
-                              child: Image.network(
-                                snapshot.data![index].coverImage!,
-                                height: 140,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(Icons.image_rounded),
-                              ),
-                            ),
-                            onTap: () async {
-                              final updatedData = await Navigator.of(context)
-                                  .push(MaterialPageRoute(
-                                      builder: (context) => AddManual(
-                                            bookRecord: snapshot.data![index],
-                                            shelfId: shelfSelection[
-                                                index.toString()],
-                                            mode: MODE_NEW_SHELF,
-                                          )));
+                                          context: context,
+                                          builder: (context) =>
+                                              CustomAlertDialog(
+                                                  context,
+                                                  "Remove book?",
+                                                  "Would you like to remove this book?",
+                                                  confirmOnPressed: () {
+                                                Navigator.of(context).pop();
 
-                              if (!mounted) return;
-                              setState(() {
-                                snapshot.data![index] =
-                                    (updatedData["book"] as Book);
-                                shelfSelection[index.toString()] =
-                                    updatedData["shelf"];
-                              });
-                            },
-                          )),
+                                                setState(() {
+                                                  bookSelection.remove(index);
+                                                  snapshot.data!.remove(index);
+                                                  shelfSelection
+                                                      .remove(index.toString());
+                                                  _formKeys
+                                                      .remove(index.toString());
+                                                });
+                                              }));
+                                    },
+                                    icon: Icons.delete_rounded,
+                                    foregroundColor: Colors.white,
+                                    backgroundColor: Colors.red,
+                                  ),
+                                  SlidableAction(
+                                    onPressed: (context) async {
+                                      int newBookSelection = await showDialog(
+                                          context: context,
+                                          builder: (context) => swapBookDialog(
+                                              context,
+                                              spineText:
+                                                  widget.spineText[index],
+                                              bookList: snapshot.data![index]!,
+                                              initialSelection:
+                                                  bookSelection[index]!));
+                                      setState(() {
+                                        if (newBookSelection > -1) {
+                                          bookSelection[index] =
+                                              newBookSelection;
+                                        }
+                                      });
+                                    },
+                                    icon: Icons.change_circle_rounded,
+                                    foregroundColor: Colors.white,
+                                    backgroundColor: Colors.blue,
+                                  )
+                                ]),
+                            child: ListTile(
+                              title: Text(
+                                snapshot.data![index]![bookSelection[index]!]
+                                    .title!,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 20),
+                              ),
+                              subtitle: Form(
+                                key: _formKeys[index.toString()],
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(snapshot
+                                        .data![index]![bookSelection[index]!]
+                                        .author!),
+                                    CustomDropdown(
+                                        shelfSelection[index.toString()],
+                                        labelTxt: "Shelf",
+                                        dropdownItems: shelfDropdown,
+                                        validateFun: (String? val) {
+                                      if (val == "-1") {
+                                        return "Please select a valid shelf!";
+                                      }
+                                      return null;
+                                    }, onChangeFun: (String? val) {
+                                      if (val == "-1") {
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) => addShelfDialog(
+                                            context,
+                                            _shelfFormKey,
+                                            onComplete: () => setState(() {
+                                              shelfDropdown =
+                                                  generateShelfDropdown(
+                                                      context);
+                                              shelfSelection[index.toString()] =
+                                                  shelfDropdown[
+                                                          shelfDropdown.length -
+                                                              1]
+                                                      .value!;
+                                            }),
+                                          ),
+                                        );
+                                      } else {
+                                        setState(() {
+                                          shelfSelection[index.toString()] =
+                                              val!;
+                                        });
+                                      }
+                                    }),
+                                  ],
+                                ),
+                              ),
+                              leading: SizedBox(
+                                width: 50,
+                                child: Image.network(
+                                  snapshot.data![index]![bookSelection[index]!]
+                                      .coverImage!,
+                                  height: 140,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(Icons.image_rounded),
+                                ),
+                              ),
+                              onTap: () async {
+                                final updatedData = await Navigator.of(context)
+                                    .push(MaterialPageRoute(
+                                        builder: (context) => AddManual(
+                                              bookRecord:
+                                                  snapshot.data![index]![
+                                                      bookSelection[index]!],
+                                              shelfId: shelfSelection[
+                                                  index.toString()],
+                                              mode: MODE_NEW_SHELF,
+                                            )));
+
+                                if (!mounted) return;
+                                setState(() {
+                                  snapshot.data![index]![
+                                          bookSelection[index]!] =
+                                      (updatedData["book"] as Book);
+                                  shelfSelection[index.toString()] =
+                                      updatedData["shelf"];
+                                });
+                              },
+                            ));
+                      },
                       separatorBuilder: (context, index) => const Divider(),
                     ),
                   ),
@@ -223,7 +232,8 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
                       bool success = true;
                       for (int i = 0; i < snapshot.data!.length; i++) {
                         success = ModelHelper.addNewBook(
-                            snapshot.data![i], shelfSelection[i.toString()]!);
+                            snapshot.data![keys[i]]![bookSelection[keys[i]]!],
+                            shelfSelection[keys[i].toString()]!);
 
                         if (!success) {
                           break;
@@ -249,12 +259,6 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
                   )
                 ],
               ));
-
-          // return AddManual(
-          //   mode: MODE_NEW_DATA,
-          //   bookRecord: snapshot.data!.first,
-          //   shelfId: "-1",
-          // );
         } else if (snapshot.hasError) {
           return Scaffold(
               appBar: AppBar(
@@ -294,10 +298,12 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
     );
   }
 
-  Future<List<Book>> fetchBookData(List<String> spineText) async {
-    List<Book> list = [];
+  Future<Map<int, List<Book>>> fetchBookData(List<String> spineText) async {
+    Map<int, List<Book>> finalBookSet = {};
 
-    for (String text in spineText) {
+    for (int i = 0; i < spineText.length; i++) {
+      List<Book> list = [];
+      String text = spineText[i];
       final response = await get(
           Uri.parse("https://www.googleapis.com/books/v1/volumes?q=$text"));
 
@@ -305,18 +311,17 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
         // If the server did return a 200 OK response,
         // then parse the JSON.
         List<Book> retrieved =
-            ModelHelper.decodeBookFromJson(response.body, maxResponses: 1);
-
+            ModelHelper.decodeBookFromJson(response.body, maxResponses: 5);
         if (retrieved.isNotEmpty) {
-          list.add((retrieved[0]));
+          list.addAll((retrieved));
         }
       } else {
         // If no books was found, return detected spine text as title
         list.add(Book(ObjectId().toString(), title: text));
       }
+      finalBookSet.putIfAbsent(i, () => list);
     }
-
-    return list;
+    return finalBookSet;
   }
 
   List<DropdownMenuItem<String>> generateShelfDropdown(context) {
@@ -346,5 +351,131 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
     list.insert(0, addShelf);
 
     return list;
+  }
+
+  Widget swapBookDialog(BuildContext context,
+      {required String spineText,
+      required List<Book> bookList,
+      required int initialSelection,
+      onComplete}) {
+    int selectedIndex = initialSelection;
+
+    return AlertDialog(
+      title: Container(
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: Colors.green.shade700,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(25.0),
+            topRight: Radius.circular(25.0),
+          ),
+        ),
+        child: Column(
+          children: [
+            const Text(
+              "Books Returned from API for: ",
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            Text(spineText,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15))
+          ],
+        ),
+      ),
+      titlePadding: const EdgeInsets.all(0),
+      actionsPadding: const EdgeInsets.all(10),
+      content: StatefulBuilder(
+        builder: (BuildContext context, StateSetter setState) => SizedBox(
+            width: MediaQuery.of(context).size.width,
+            child: SingleChildScrollView(
+              child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  //* Shelves
+                  children: List.generate(
+                    bookList.length,
+                    (index) => Stack(children: [
+                      RadioListTile<int>(
+                        value: index,
+                        groupValue: selectedIndex,
+                        onChanged: (int? val) =>
+                            setState(() => selectedIndex = val!),
+                        title: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8.0, horizontal: 2.0),
+                            //* Items in shelf
+                            child: Container(
+                              margin: const EdgeInsets.only(left: 5),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(15),
+                                color: const Color(0xff484357),
+                              ),
+                              child: Card(
+                                color: const Color(0xff484357),
+                                child: Column(children: [
+                                  (bookList[index].coverImage == null ||
+                                          bookList[index].coverImage == "")
+                                      ? const Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            Placeholder(
+                                              fallbackHeight: 140,
+                                            ),
+                                            Center(
+                                                child: Text("No image provided",
+                                                    style: TextStyle(
+                                                        color: Colors.white)))
+                                          ],
+                                        )
+                                      : getImageDisplay(
+                                          bookList[index].coverImage!),
+                                  const Divider(
+                                    color: Colors.white,
+                                  ),
+                                  Text(
+                                    bookList[index].title!,
+                                    style: const TextStyle(
+                                        fontSize: 18, color: Colors.white),
+                                    maxLines: null,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  Text(
+                                    bookList[index].author!,
+                                    style: const TextStyle(
+                                        fontSize: 12, color: Colors.white),
+                                    textAlign: TextAlign.center,
+                                    maxLines: null,
+                                  )
+                                ]),
+                              ),
+                            )),
+                      )
+                    ]),
+                  )),
+            )),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.pop(context, -1),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () {
+            Navigator.pop(context, selectedIndex);
+
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text("Book selection updated"),
+              showCloseIcon: true,
+            ));
+          },
+          child: const Text(
+            'Confirm',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+      ],
+    );
   }
 }
