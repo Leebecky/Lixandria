@@ -5,7 +5,7 @@ Manual Add:
     ✔ Cover Image - Edit @done(23-06-23 11:04)
 
 OCR:
-    ☐ Add support for sideways @critical
+    ✔ Add support for sideways @critical @done(23-07-04 06:40)
         > Images in mobile tends to be sideways when sent to API
     ☐ Add support for mixed @low
     ☐ Consider optimisation 
@@ -39,7 +39,7 @@ Book Spine Scan:
     ✔ Implement Add New Shelf @done(23-07-03 17:57)
 
 Fixes: @high
-    ☐ Barcode scan
+    ✔ Barcode scan @done(23-07-04 06:41)
         > fails to return results for certain books. Need to verify details causing error
         ✔ Handle if no cover image returned @done(23-06-04 23:28)
         ✔ Handle if no books are found @done(23-06-05 01:10)
@@ -63,4 +63,5 @@ Misc:
     ☐ Searchbar
     ✔ Sort tags alphabetically @done(23-06-23 11:24)
     ☐ Provide Help button on header
-    ☐ Sort books on shelf alphabetically
+    ✔ Sort books on shelf alphabetically @done(23-07-04 06:52)
+    ☐ Code Header as per Dhason

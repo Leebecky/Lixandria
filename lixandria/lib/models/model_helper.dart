@@ -88,7 +88,9 @@ class ModelHelper {
             ownershipStatus: b.ownershipStatus,
             seriesNumber: b.seriesNumber,
             tags: convertToTag(data: b.tags)))
-        .toList();
+        .toList()
+      ..sort(
+          (a, b) => a.title!.toLowerCase().compareTo(b.title!.toLowerCase()));
     return books;
   }
 
@@ -278,5 +280,23 @@ class ModelHelper {
       print("deleteTag Exception: ${e.toString()}");
       return false;
     }
+  }
+
+  static Book generateEmptyBook() {
+    return Book(ObjectId().toString(),
+        title: "",
+        subTitle: "",
+        author: "",
+        publisher: "",
+        description: "",
+        userNotes: "",
+        location: "",
+        bookRating: 0,
+        coverImage: "",
+        isRead: false,
+        isbnCode: "",
+        ownershipStatus: "",
+        seriesNumber: 0,
+        tags: []);
   }
 }

@@ -361,13 +361,14 @@ def evaluate_ocr_output(ocr):
 # API Code
 @app.route("/Lixandria_API", methods=["GET"])
 def get():
-    return "<p>GET request unavailable 1.3</p>"
+    return "<p>GET request unavailable 2.0</p>"
 
 
 @app.route("/Lixandria_API", methods=["POST"])
 def SpineOCR():
     try:
         # Receive and Read Image
+        book_orientation = request.form.get("orientation")
         shelf_image = request.files.get("image")
         image_buffer = np.fromfile(shelf_image, np.uint8)
         
@@ -379,13 +380,14 @@ def SpineOCR():
 
         # Canny Edge Detection
         img_canny = cannyEdge(img_gray)
-        cv2.imshow("img", img_canny)
-        cv2.waitKey()
+        # cv2.imshow("img", img_canny)
+        # cv2.waitKey()
         
         # Hough Lines
         disp = img_resized.copy()
-        disp = cv2.rotate(disp, cv2.ROTATE_90_COUNTERCLOCKWISE)
-        img_canny = cv2.rotate(img_canny, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        if (book_orientation == "Vertical"):
+            disp = cv2.rotate(disp, cv2.ROTATE_90_COUNTERCLOCKWISE)
+            img_canny = cv2.rotate(img_canny, cv2.ROTATE_90_COUNTERCLOCKWISE)
         hough_lines = get_hough_lines(img_canny, disp)
         coords = get_hough_coords(hough_lines)
         east_boxes = east(disp)
@@ -404,6 +406,6 @@ def SpineOCR():
 
 
 # Run the API
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
-# serve(app, host='0.0.0.0', port=8000, threads=1)  #WAITRESS!
+# if __name__ == "__main__":
+    # app.run(host="0.0.0.0", port=5000)
+serve(app, host='0.0.0.0', port=8000, threads=1)  #WAITRESS!

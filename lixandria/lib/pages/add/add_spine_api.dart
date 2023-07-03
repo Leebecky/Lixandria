@@ -12,7 +12,12 @@ import 'add_spine_book.dart';
 class SpineAddApi extends StatefulWidget {
   final String? apiUrl;
   final String? imagePath;
-  const SpineAddApi({super.key, required this.apiUrl, required this.imagePath});
+  final String? orientation;
+  const SpineAddApi(
+      {super.key,
+      required this.apiUrl,
+      required this.imagePath,
+      required this.orientation});
 
   @override
   State<SpineAddApi> createState() => _SpineAddApiState();
@@ -26,7 +31,8 @@ class _SpineAddApiState extends State<SpineAddApi> {
   @override
   void initState() {
     super.initState();
-    segmentResults = processShelfImage(widget.apiUrl!, widget.imagePath!);
+    segmentResults = processShelfImage(
+        widget.apiUrl!, widget.imagePath!, widget.orientation!);
   }
 
   @override
@@ -206,10 +212,10 @@ class _SpineAddApiState extends State<SpineAddApi> {
 }
 
 Future<List<BookSegment>> processShelfImage(
-    String url, String imagePath) async {
+    String url, String imagePath, String orientation) async {
   // final response = await http.get(Uri.parse(url));
   MultipartRequest request = MultipartRequest('POST', Uri.parse(url));
-
+  request.fields.putIfAbsent("orientation", () => orientation);
   request.files.add(
     await MultipartFile.fromPath('image', imagePath
         // contentType:  MediaType('application', 'jpeg')/,

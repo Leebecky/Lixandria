@@ -298,6 +298,7 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
     );
   }
 
+//? Retrieve Book Data from Google Books API based on detected spine text
   Future<Map<int, List<Book>>> fetchBookData(List<String> spineText) async {
     Map<int, List<Book>> finalBookSet = {};
 
@@ -314,16 +315,20 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
             ModelHelper.decodeBookFromJson(response.body, maxResponses: 5);
         if (retrieved.isNotEmpty) {
           list.addAll((retrieved));
+        } else {
+          // If no books was found, return detected spine text as title
+          list.add(ModelHelper.generateEmptyBook()..title = text);
         }
       } else {
         // If no books was found, return detected spine text as title
-        list.add(Book(ObjectId().toString(), title: text));
+        list.add(ModelHelper.generateEmptyBook()..title = text);
       }
       finalBookSet.putIfAbsent(i, () => list);
     }
     return finalBookSet;
   }
 
+//? Generate the dropdown options for the Shelves
   List<DropdownMenuItem<String>> generateShelfDropdown(context) {
     RealmResults<Shelf> shelfDb = ModelHelper.getAllShelves();
     List<DropdownMenuItem<String>> list = shelfDb
@@ -353,6 +358,7 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
     return list;
   }
 
+//? UI for Book Swap Selection dialog
   Widget swapBookDialog(BuildContext context,
       {required String spineText,
       required List<Book> bookList,
