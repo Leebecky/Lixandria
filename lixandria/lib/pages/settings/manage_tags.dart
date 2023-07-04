@@ -1,3 +1,11 @@
+/*
+Programmer Name: Ms Rebecca Lee Hui Yi, APD3F2211CS(IS)
+Program Name: manage_tags.dart
+Description: UI Page. Handles the management of tags in the system and relevant business logic.
+First Written On: 12/06/2023
+Last Edited On:  23/06/2023
+ */
+
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:realm/realm.dart';

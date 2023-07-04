@@ -1,3 +1,11 @@
+/*
+Programmer Name: Ms Rebecca Lee Hui Yi, APD3F2211CS(IS)
+Program Name: book_segment.dart
+Description: Helper class for handling data returned from the Spine Segmentation and OCR API
+First Written On: 12/06/2023
+Last Edited On:  18/06/2023
+ */
+
 import 'dart:convert';
 
 class BookSegment {

@@ -1,3 +1,11 @@
+/*
+Programmer Name: Ms Rebecca Lee Hui Yi, APD3F2211CS(IS)
+Program Name: settings.dart
+Description: UI Page. Displays the settings menu and relevant business logic.
+First Written On: 18/06/2023
+Last Edited On:  23/06/2023
+ */
+
 import 'dart:io';
 import 'package:excel/excel.dart';
 import 'package:path_provider/path_provider.dart';

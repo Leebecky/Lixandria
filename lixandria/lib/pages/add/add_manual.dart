@@ -1,5 +1,12 @@
-import 'dart:io';
+/*
+Programmer Name: Ms Rebecca Lee Hui Yi, APD3F2211CS(IS)
+Program Name: add_manual.dart
+Description: UI Page. Handles the process of adding/edit/delete books (manually) and relevant business logic.
+First Written On: 12/06/2023
+Last Edited On:  18/06/2023
+ */
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:lixandria/constants.dart';

@@ -1,3 +1,11 @@
+/*
+Programmer Name: Ms Rebecca Lee Hui Yi, APD3F2211CS(IS)
+Program Name: statistics_book_by_ownership.dart
+Description: UI Page. Displays the books by ownership chart and handles relevant business logic.
+First Written On: 18/06/2023
+Last Edited On:  23/06/2023
+ */
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:lixandria/constants.dart';

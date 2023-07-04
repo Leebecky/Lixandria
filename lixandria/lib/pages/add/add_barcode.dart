@@ -1,3 +1,11 @@
+/*
+Programmer Name: Ms Rebecca Lee Hui Yi, APD3F2211CS(IS)
+Program Name: add_barcode.dart
+Description: UI Page. Handles the Barcode Scanner and relevant business logic.
+First Written On: 12/06/2023
+Last Edited On:  18/06/2023
+ */
+
 import 'package:flutter/material.dart';
 import 'package:lixandria/constants.dart';
 import 'package:lixandria/models/model_helper.dart';

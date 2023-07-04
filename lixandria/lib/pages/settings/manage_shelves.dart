@@ -1,23 +1,10 @@
-//  child: Container(
-//             height: 55,
-//             width: 250,
-//             child: Slidable(
-//                 endActionPane:
-//                     ActionPane(motion: const ScrollMotion(), children: [
-//                   SlidableAction(
-//                     icon: Icons.delete_rounded,
-//                     backgroundColor: Colors.red,
-//                     foregroundColor: Colors.white,
-//                     onPressed: (context) {
-//                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-//                         content: Text(x.shelfName!),
-//                         showCloseIcon: true,
-//                       ));
-//                     },
-//                   )
-//                 ]),
-
-//           ))
+/*
+Programmer Name: Ms Rebecca Lee Hui Yi, APD3F2211CS(IS)
+Program Name: manage_shelves.dart
+Description: UI Page. Handles the management of shelves in the system and relevant business logic.
+First Written On: 12/06/2023
+Last Edited On:  23/06/2023
+ */
 
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';

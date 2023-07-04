@@ -1,3 +1,11 @@
+/*
+Programmer Name: Ms Rebecca Lee Hui Yi, APD3F2211CS(IS)
+Program Name: constants.dart
+Description: Helper page. Contains all constant values used in the system that are not stored in the database. 
+First Written On: 02/06/2023
+Last Edited On:  12/06/2023
+ */
+
 const String MODE_EDIT = "edit";
 const String MODE_NEW = "new";
 const String MODE_NEW_BARCODE = "new_barcode ";

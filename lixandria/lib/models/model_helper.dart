@@ -1,3 +1,11 @@
+/*
+Programmer Name: Ms Rebecca Lee Hui Yi, APD3F2211CS(IS)
+Program Name: model_helper.dart
+Description: Helper Class used to interface with the models in the system. Handles all communication with the database.
+First Written On: 02/06/2023
+Last Edited On:  04/07/2023
+ */
+
 import 'dart:convert';
 
 import 'package:lixandria/constants.dart';

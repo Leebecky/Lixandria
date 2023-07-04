@@ -1,3 +1,11 @@
+/*
+Programmer Name: Ms Rebecca Lee Hui Yi, APD3F2211CS(IS)
+Program Name: add_catalogue.dart
+Description: UI Page. Menu Selection interface for different Add Book methods
+First Written On: 12/06/2023
+Last Edited On:  18/06/2023
+ */
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';

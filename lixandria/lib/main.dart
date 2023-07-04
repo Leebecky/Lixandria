@@ -1,3 +1,11 @@
+/*
+Programmer Name: Ms Rebecca Lee Hui Yi, APD3F2211CS(IS)
+Program Name: main.dart
+Description: Main thread from which the application is launched. Contains configuration for app theme colour and bottom navigation bar. 
+First Written On: 02/06/2023
+Last Edited On:  12/06/2023
+ */
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:lixandria/models/shelf.dart';
@@ -10,7 +18,7 @@ import 'models/tag.dart';
 import 'pages/add/add_catalogue.dart';
 import 'pages/home.dart';
 
-List<CameraDescription>? cameras;
+// List<CameraDescription>? cameras;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // cameras = await availableCameras();

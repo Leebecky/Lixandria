@@ -1,3 +1,11 @@
+/*
+Programmer Name: Ms Rebecca Lee Hui Yi, APD3F2211CS(IS)
+Program Name: customElevatedButton.dart
+Description: Widget UI. Custom implementation of the ElevatedButton.
+First Written On: 02/06/2023
+Last Edited On:  12/06/2023
+ */
+
 import 'package:flutter/material.dart';
 
 CustomElevatedButton(String btnText,

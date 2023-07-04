@@ -1,3 +1,11 @@
+/*
+Programmer Name: Ms Rebecca Lee Hui Yi, APD3F2211CS(IS)
+Program Name: statistics_tag_distribution.dart
+Description: UI Page. Displays the tags distribution chart and handles relevant business logic.
+First Written On: 18/06/2023
+Last Edited On:  23/06/2023
+ */
+
 import 'package:flutter/material.dart';
 import 'package:flutter_scatter/flutter_scatter.dart';
 import 'package:lixandria/models/model_helper.dart';

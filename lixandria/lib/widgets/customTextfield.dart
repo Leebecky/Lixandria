@@ -1,3 +1,11 @@
+/*
+Programmer Name: Ms Rebecca Lee Hui Yi, APD3F2211CS(IS)
+Program Name: customTextfield.dart
+Description: Widget UI. Custom implementation of the Textfield.
+First Written On: 02/06/2023
+Last Edited On:  12/06/2023
+ */
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 

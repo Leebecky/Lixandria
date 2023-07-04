@@ -1,5 +1,12 @@
-import 'dart:io';
+/*
+Programmer Name: Ms Rebecca Lee Hui Yi, APD3F2211CS(IS)
+Program Name: add_spine.dart
+Description: UI Page. Handles the results returned from the camera and relevant business logic.
+First Written On: 12/06/2023
+Last Edited On:  04/07/2023
+ */
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:lixandria/pages/add/add_spine_api.dart';
 import 'package:lixandria/widgets/customElevatedButton.dart';

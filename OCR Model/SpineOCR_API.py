@@ -1,3 +1,9 @@
+# Programmer Name: Ms Rebecca Lee Hui Yi, APD3F2211CS(IS)
+# Program Name: SpineOCR_API.py
+# Description: API for Spine Segmentation and OCR. 
+# First Written On: 02/06/2023
+# Last Edited On:  08/06/2023
+
 from flask import Flask, request, jsonify
 from waitress import serve
 from imutils.object_detection import non_max_suppression
