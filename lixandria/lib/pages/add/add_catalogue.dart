@@ -64,7 +64,7 @@ class _AddCatalogueState extends State<AddCatalogue> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Add Books"),
+        title: const Text("Select Add Books Method"),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.of(context).pop(),

@@ -259,7 +259,7 @@ class _AddManualState extends State<AddManual> {
                       });
                     }
                   }),
-
+                  //* Book Rating
                   Container(
                     padding: const EdgeInsets.all(8.0),
                     width: double.infinity,
@@ -285,7 +285,7 @@ class _AddManualState extends State<AddManual> {
                       ),
                     ),
                   ),
-
+                  //* Book Tags
                   Container(
                       constraints:
                           const BoxConstraints(maxHeight: 225, minHeight: 150),
@@ -353,7 +353,7 @@ class _AddManualState extends State<AddManual> {
                               ],
                             ),
                           ))),
-
+                  //* Is Read
                   CheckboxListTile(
                       title: const Text("Is Read?"),
                       value: _isRead,
@@ -361,7 +361,7 @@ class _AddManualState extends State<AddManual> {
                       onChanged: (bool? val) => setState(() {
                             _isRead = val!;
                           })),
-
+                  //* Buttons
                   CustomElevatedButton(
                       (widget.mode == MODE_EDIT)
                           ? "Update"
@@ -499,7 +499,6 @@ class _AddManualState extends State<AddManual> {
   }
 
   Widget tagSelectionDialog(tagFormKey, {required List<Tag> bookTags}) {
-    // final searchCtrl = TextEditingController();
     List<Map<String, Object>> tagList = generateTagSelection(bookTags);
 
     return StatefulBuilder(
@@ -515,7 +514,6 @@ class _AddManualState extends State<AddManual> {
                   ),
                   child: Row(
                     children: [
-                      // Expanded(child: SearchBar(controller: searchCtrl)),
                       const Expanded(
                           child: Text(
                         "Select Book Tags",
@@ -638,13 +636,12 @@ addShelfDialog(context, formKey, {onComplete}) {
               if (formKey.currentState!.validate()) {
                 Shelf data = Shelf(shelfId,
                     shelfName: shelfNameTxt.text, booksOnShelf: []);
-                bool success = ModelHelper.addNewShelf(data, false);
+                String dbResponse = ModelHelper.addNewShelf(data, false);
 
                 onComplete();
 
-                String msg = (success)
-                    ? "Shelf added"
-                    : "Unexpected error encountered. Please try again.";
+                String msg =
+                    (dbResponse == "Success") ? "Shelf added" : dbResponse;
 
                 Navigator.pop(context, "Cancel");
 
@@ -701,13 +698,12 @@ Widget addTagDialog(context, formKey, {onComplete}) {
                   tagId,
                   tagDesc: tagNameTxt.text,
                 );
-                bool success = ModelHelper.addNewTag(data, false);
+                String dbResponse = ModelHelper.addNewTag(data, false);
 
                 onComplete();
 
-                String msg = (success)
-                    ? "Tag added"
-                    : "Unexpected error encountered. Please try again.";
+                String msg =
+                    (dbResponse == "Success") ? "Tag added" : dbResponse;
 
                 Navigator.pop(context, "Cancel");
 

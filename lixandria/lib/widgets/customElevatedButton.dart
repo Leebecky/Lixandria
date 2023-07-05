@@ -30,6 +30,7 @@ CustomElevatedButton(String btnText,
     padding: const EdgeInsets.symmetric(vertical: 12.0),
     child: ElevatedButton(
         style: ElevatedButton.styleFrom(
+            elevation: 6.0,
             foregroundColor: textColour,
             backgroundColor: btnColour,
             minimumSize: (btnSize == "small")

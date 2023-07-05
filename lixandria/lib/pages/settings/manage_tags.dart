@@ -124,10 +124,12 @@ List<Tag> getTagData() {
   return ModelHelper.convertToTag(dataFromResults: tagDb);
 }
 
-addTagDialog(context, formKey, {isUpdate, Tag? tagData, onComplete}) {
+addTagDialog(context, formKey,
+    {required bool isUpdate, Tag? tagData, onComplete}) {
   final tagNameTxt = TextEditingController()
     ..text = (isUpdate) ? tagData!.tagDesc! : "";
   String tagId = (isUpdate) ? tagData!.tagId : ObjectId().toString();
+  String headerText = (isUpdate) ? "Edit" : "New";
 
   return AlertDialog(
     title: Container(
@@ -139,9 +141,10 @@ addTagDialog(context, formKey, {isUpdate, Tag? tagData, onComplete}) {
           topRight: Radius.circular(25.0),
         ),
       ),
-      child: const Text(
-        "New Tag",
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      child: Text(
+        "$headerText Tag",
+        style:
+            const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
       ),
     ),
     titlePadding: const EdgeInsets.all(0),
@@ -165,15 +168,15 @@ addTagDialog(context, formKey, {isUpdate, Tag? tagData, onComplete}) {
               tagId,
               tagDesc: tagNameTxt.text,
             );
-            bool success = ModelHelper.addNewTag(data, isUpdate);
+            String dbResponse = ModelHelper.addNewTag(data, isUpdate);
 
             onComplete();
 
-            String msg = (success)
+            String msg = (dbResponse == "Success")
                 ? (isUpdate)
                     ? "Tag updated"
                     : "Tag added"
-                : "Unexpected error encountered. Please try again.";
+                : dbResponse;
 
             Navigator.pop(context, "Cancel");
 

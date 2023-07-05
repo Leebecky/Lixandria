@@ -52,13 +52,20 @@ class _TagWordcloudState extends State<TagWordcloud> {
               const SizedBox(
                 height: 15,
               ),
-              SizedBox(
+              Container(
+                decoration: BoxDecoration(
+                    border: Border.all(width: 2),
+                    borderRadius: BorderRadius.circular(15),
+                    color: Colors.white),
                 height: MediaQuery.of(context).size.height / 1.5,
-                child: FittedBox(
-                  child: Scatter(
-                    delegate: ArchimedeanSpiralScatterDelegate(ratio: ratio),
-                    children: List.generate(wordList.length,
-                        (index) => ScatterItem(wordList[index], index)),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: FittedBox(
+                    child: Scatter(
+                      delegate: ArchimedeanSpiralScatterDelegate(ratio: ratio),
+                      children: List.generate(wordList.length,
+                          (index) => ScatterItem(wordList[index], index)),
+                    ),
                   ),
                 ),
               )
@@ -74,7 +81,7 @@ class ScatterItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextStyle style = TextStyle(
-      fontSize: word.size.toDouble(),
+      fontSize: 10 * word.size.toDouble(),
       color: word.color,
     );
     return RotatedBox(

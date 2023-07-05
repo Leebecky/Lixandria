@@ -10,7 +10,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:lixandria/constants.dart';
 import 'package:lixandria/models/model_helper.dart';
-
 import '../../models/book.dart';
 
 class BooksByOwnership extends StatefulWidget {
@@ -48,7 +47,7 @@ class _BooksByOwnershipState extends State<BooksByOwnership> {
       dataset.add(PieData(
           sliceColour: colourSet[i],
           sliceValue: val,
-          slicePercentage: (val / bookList.length) * 100,
+          slicePercentage: ((val / bookList.length) * 100).toStringAsFixed(2),
           sliceLabel: ownershipSet[i]));
     }
   }
@@ -160,13 +159,13 @@ class PieData {
   late int pieSliceValue;
   late Color pieTextColour;
   late String pieSliceLabel;
-  late double pieSlicePercentage;
+  late String pieSlicePercentage;
 
   PieData(
       {required Color sliceColour,
       required int sliceValue,
       required String sliceLabel,
-      double slicePercentage = 0,
+      String slicePercentage = "0",
       Color textColour = Colors.white}) {
     pieSliceColour = sliceColour;
     pieSliceValue = sliceValue;

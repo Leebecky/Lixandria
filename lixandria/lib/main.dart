@@ -6,7 +6,6 @@ First Written On: 02/06/2023
 Last Edited On:  12/06/2023
  */
 
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:lixandria/models/shelf.dart';
 import 'package:lixandria/pages/settings/settings.dart';

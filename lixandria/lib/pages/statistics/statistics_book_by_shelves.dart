@@ -43,7 +43,7 @@ class _BooksByShelvesState extends State<BooksByShelves> {
       case <= 10:
         intervalVal = 1;
         break;
-      case <= 20:
+      case <= 15:
         intervalVal = 5;
         break;
       case < 40:
@@ -71,9 +71,15 @@ class _BooksByShelvesState extends State<BooksByShelves> {
             const SizedBox(
               height: 15,
             ),
-            SizedBox(
-              height: MediaQuery.of(context).size.height / 1.5,
-              child: BarChart(mainBarData()),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Container(
+                padding: const EdgeInsets.only(top: 15),
+                width:
+                    shelfData.length * (MediaQuery.of(context).size.width / 4),
+                height: MediaQuery.of(context).size.height / 1.5,
+                child: BarChart(mainBarData()),
+              ),
             ),
             const SizedBox(
               height: 80,
@@ -84,12 +90,14 @@ class _BooksByShelvesState extends State<BooksByShelves> {
 
   BarChartData mainBarData() {
     return BarChartData(
+      alignment: BarChartAlignment.spaceEvenly,
       barTouchData: BarTouchData(
         touchTooltipData: BarTouchTooltipData(
             tooltipBgColor: Colors.blueGrey,
             tooltipHorizontalAlignment: FLHorizontalAlignment.right,
             tooltipMargin: -10,
             fitInsideHorizontally: true,
+            fitInsideVertically: true,
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               String weekDay;
               (shelfNames.isNotEmpty)
@@ -195,26 +203,6 @@ class _BooksByShelvesState extends State<BooksByShelves> {
           isTouched: i == touchedIndex));
     }
     return data;
-    //  List.generate(7, (i) {
-    //       switch (i) {
-    //         case 0:
-    //           return makeGroupData(0, 5, isTouched: i == touchedIndex);
-    //         case 1:
-    //           return makeGroupData(1, 6.5, isTouched: i == touchedIndex);
-    //         case 2:
-    //           return makeGroupData(2, 5, isTouched: i == touchedIndex);
-    //         case 3:
-    //           return makeGroupData(3, 7.5, isTouched: i == touchedIndex);
-    //         case 4:
-    //           return makeGroupData(4, 9, isTouched: i == touchedIndex);
-    //         case 5:
-    //           return makeGroupData(5, 11.5, isTouched: i == touchedIndex);
-    //         case 6:
-    //           return makeGroupData(6, 6.5, isTouched: i == touchedIndex);
-    //         default:
-    //           return throw Error();
-    //       }
-    //     });
   }
 
 //* x-axis title data
@@ -227,32 +215,7 @@ class _BooksByShelvesState extends State<BooksByShelves> {
     String text =
         (shelfNames[value.toInt()] != null) ? shelfNames[value.toInt()]! : "";
     Widget titleWidget = Text(text, style: style);
-    // switch (value.toInt()) {
-    //   case 0:
-    //     text = const Text('M', style: style);
-    //     break;
-    //   case 1:
-    //     text = const Text('T', style: style);
-    //     break;
-    //   case 2:
-    //     text = const Text('W', style: style);
-    //     break;
-    //   case 3:
-    //     text = const Text('T', style: style);
-    //     break;
-    //   case 4:
-    //     text = const Text('F', style: style);
-    //     break;
-    //   case 5:
-    //     text = const Text('S', style: style);
-    //     break;
-    //   case 6:
-    //     text = const Text('S', style: style);
-    //     break;
-    //   default:
-    //     text = const Text('', style: style);
-    //     break;
-    // }
+
     return SideTitleWidget(
       axisSide: meta.axisSide,
       space: 16,

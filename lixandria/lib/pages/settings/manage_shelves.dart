@@ -132,10 +132,12 @@ List<Shelf> getShelfData() {
   return ModelHelper.convertToShelf(shelfDb);
 }
 
-addShelfDialog(context, formKey, {isUpdate, Shelf? shelfData, onComplete}) {
+addShelfDialog(context, formKey,
+    {required bool isUpdate, Shelf? shelfData, onComplete}) {
   final shelfNameTxt = TextEditingController()
     ..text = (isUpdate) ? shelfData!.shelfName! : "";
   String shelfId = (isUpdate) ? shelfData!.shelfId : ObjectId().toString();
+  String headerText = (isUpdate) ? "Edit" : "New";
 
   return AlertDialog(
     title: Container(
@@ -147,9 +149,10 @@ addShelfDialog(context, formKey, {isUpdate, Shelf? shelfData, onComplete}) {
           topRight: Radius.circular(25.0),
         ),
       ),
-      child: const Text(
-        "New Shelf",
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      child: Text(
+        "$headerText Shelf",
+        style:
+            const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
       ),
     ),
     titlePadding: const EdgeInsets.all(0),
@@ -172,15 +175,15 @@ addShelfDialog(context, formKey, {isUpdate, Shelf? shelfData, onComplete}) {
             Shelf data = Shelf(shelfId,
                 shelfName: shelfNameTxt.text,
                 booksOnShelf: (isUpdate) ? shelfData!.booksOnShelf : []);
-            bool success = ModelHelper.addNewShelf(data, isUpdate);
+            String dbResponse = ModelHelper.addNewShelf(data, isUpdate);
 
             onComplete();
 
-            String msg = (success)
+            String msg = (dbResponse == "Success")
                 ? (isUpdate)
                     ? "Shelf updated"
                     : "Shelf added"
-                : "Unexpected error encountered. Please try again.";
+                : dbResponse;
 
             Navigator.pop(context, "Cancel");
 

@@ -227,13 +227,36 @@ class ModelHelper {
           Configuration.local([Shelf.schema, Book.schema, Tag.schema]);
       var realm = Realm(realmConfig);
 
-      realm.write(() {
-        realm.add(data, update: isUpdate);
-      });
-      return true;
+      final List<Shelf> dataFromDb = realm
+          .all<Shelf>()
+          .query(r'shelfName Contains[c] $0', [data.shelfName!]).toList();
+
+      bool hasMatch = false;
+
+      if (dataFromDb.isNotEmpty) {
+        for (var record in dataFromDb) {
+          hasMatch = (record.shelfName!.toLowerCase() ==
+              data.shelfName!.toLowerCase());
+          if (hasMatch) {
+            if (isUpdate && record.shelfId == data.shelfId) {
+              hasMatch = false;
+              break;
+            }
+
+            return "This shelf name already exists in the database!";
+          }
+        }
+      }
+
+      if (!hasMatch) {
+        realm.write(() {
+          realm.add(data, update: isUpdate);
+        });
+        return "Success";
+      }
     } catch (ex) {
       print("addNewShelf Exception: ${ex.toString()}");
-      return false;
+      return ex.toString();
     }
   }
 
@@ -262,13 +285,35 @@ class ModelHelper {
       final realmConfig = Configuration.local([Tag.schema]);
       var realm = Realm(realmConfig);
 
-      realm.write(() {
-        realm.add(data, update: isUpdate);
-      });
-      return true;
+      final List<Tag> dataFromDb = realm
+          .all<Tag>()
+          .query(r'tagDesc Contains[c] $0', [data.tagDesc!]).toList();
+      bool hasMatch = false;
+
+      if (dataFromDb.isNotEmpty) {
+        for (var record in dataFromDb) {
+          hasMatch =
+              (record.tagDesc!.toLowerCase() == data.tagDesc!.toLowerCase());
+          if (hasMatch) {
+            if (isUpdate && record.tagId == data.tagId) {
+              hasMatch = false;
+              break;
+            }
+
+            return "This tag already exists in the database!";
+          }
+        }
+      }
+
+      if (!hasMatch) {
+        realm.write(() {
+          realm.add(data, update: isUpdate);
+        });
+        return "Success";
+      }
     } catch (ex) {
       print("addNewTag Exception: ${ex.toString()}");
-      return false;
+      return ex.toString();
     }
   }
 
