@@ -41,115 +41,134 @@ class _HomeState extends State<Home> {
       child: Column(
           mainAxisSize: MainAxisSize.min,
           //* Shelves
-          children: List.generate(
-              shelvesList.length,
-              (index) => SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  height: 330,
-                  child: Stack(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 30.0, horizontal: 8.0),
-                        //* Items in shelf
-                        child: (shelvesList[index].booksOnShelf.isNotEmpty)
-                            ? ListView.builder(
-                                itemCount:
-                                    shelvesList[index].booksOnShelf.length,
-                                scrollDirection: Axis.horizontal,
-                                itemExtent:
-                                    MediaQuery.of(context).size.width / 2.5,
-                                itemBuilder: (context, item) {
-                                  var shelf = shelvesList[index].booksOnShelf;
-                                  return Container(
-                                      margin: const EdgeInsets.only(left: 5),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(15),
-                                        color: const Color(0xff484357),
-                                      ),
-                                      child: Card(
-                                        color: const Color(0xff484357),
-                                        child: InkWell(
-                                          onTap: () => Navigator.of(context)
-                                              .push(MaterialPageRoute(
-                                            builder: (context) => AddManual(
-                                              mode: MODE_EDIT,
-                                              bookRecord: shelf[item],
-                                              shelfId:
-                                                  shelvesList[index].shelfId,
+          children: (shelvesList.isEmpty)
+              ? [
+                  const Center(
+                      child: Text(
+                    "No shelves in the database",
+                    style: TextStyle(fontSize: 20),
+                  ))
+                ]
+              : List.generate(
+                  shelvesList.length,
+                  (index) => SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      height: 330,
+                      child: Stack(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 30.0, horizontal: 8.0),
+                            //* Items in shelf
+                            child: (shelvesList[index].booksOnShelf.isNotEmpty)
+                                ? ListView.builder(
+                                    itemCount:
+                                        shelvesList[index].booksOnShelf.length,
+                                    scrollDirection: Axis.horizontal,
+                                    itemExtent:
+                                        MediaQuery.of(context).size.width / 2.5,
+                                    itemBuilder: (context, item) {
+                                      var shelf =
+                                          shelvesList[index].booksOnShelf;
+                                      return Container(
+                                          margin:
+                                              const EdgeInsets.only(left: 5),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(15),
+                                            color: const Color(0xff484357),
+                                          ),
+                                          child: Card(
+                                            color: const Color(0xff484357),
+                                            child: InkWell(
+                                              onTap: () => Navigator.of(context)
+                                                  .push(MaterialPageRoute(
+                                                builder: (context) => AddManual(
+                                                  mode: MODE_EDIT,
+                                                  bookRecord: shelf[item],
+                                                  shelfId: shelvesList[index]
+                                                      .shelfId,
+                                                ),
+                                              )),
+                                              child: Column(children: [
+                                                (shelf[item].coverImage ==
+                                                            null ||
+                                                        shelf[item]
+                                                                .coverImage ==
+                                                            "")
+                                                    ? const Stack(
+                                                        alignment:
+                                                            Alignment.center,
+                                                        children: [
+                                                          Placeholder(
+                                                            fallbackHeight: 140,
+                                                          ),
+                                                          Center(
+                                                              child: Text(
+                                                                  "No image provided",
+                                                                  style: TextStyle(
+                                                                      color: Colors
+                                                                          .white)))
+                                                        ],
+                                                      )
+                                                    : getImageDisplay(
+                                                        shelf[item]
+                                                            .coverImage!),
+                                                const Divider(
+                                                  color: Colors.white,
+                                                ),
+                                                Text(
+                                                  shelf[item].title!,
+                                                  style: const TextStyle(
+                                                      fontSize: 18,
+                                                      color: Colors.white),
+                                                  maxLines: 2,
+                                                  textAlign: TextAlign.center,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                                Text(shelf[item].author!,
+                                                    style: const TextStyle(
+                                                        fontSize: 12,
+                                                        color: Colors.white),
+                                                    textAlign: TextAlign.center,
+                                                    overflow:
+                                                        TextOverflow.ellipsis)
+                                              ]),
                                             ),
-                                          )),
-                                          child: Column(children: [
-                                            (shelf[item].coverImage == null ||
-                                                    shelf[item].coverImage ==
-                                                        "")
-                                                ? const Stack(
-                                                    alignment: Alignment.center,
-                                                    children: [
-                                                      Placeholder(
-                                                        fallbackHeight: 140,
-                                                      ),
-                                                      Center(
-                                                          child: Text(
-                                                              "No image provided",
-                                                              style: TextStyle(
-                                                                  color: Colors
-                                                                      .white)))
-                                                    ],
-                                                  )
-                                                : getImageDisplay(
-                                                    shelf[item].coverImage!),
-                                            const Divider(
-                                              color: Colors.white,
-                                            ),
-                                            Text(
-                                              shelf[item].title!,
-                                              style: const TextStyle(
-                                                  fontSize: 18,
-                                                  color: Colors.white),
-                                              maxLines: 2,
-                                              textAlign: TextAlign.center,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            Text(shelf[item].author!,
-                                                style: const TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.white),
-                                                textAlign: TextAlign.center,
-                                                overflow: TextOverflow.ellipsis)
-                                          ]),
+                                          ));
+                                    },
+                                  )
+                                : SizedBox(
+                                    width: MediaQuery.of(context).size.width,
+                                    height: 330,
+                                    child: Container(
+                                        margin: const EdgeInsets.only(left: 5),
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                          color: const Color(0xff484357),
                                         ),
-                                      ));
-                                },
-                              )
-                            : SizedBox(
-                                width: MediaQuery.of(context).size.width,
-                                height: 330,
-                                child: Container(
-                                    margin: const EdgeInsets.only(left: 5),
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(15),
-                                      color: const Color(0xff484357),
-                                    ),
-                                    child: const Text(
-                                      "No books on shelf",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                          color: Colors.white, fontSize: 20),
-                                    ))),
-                      ),
-                      Container(
-                          margin: const EdgeInsets.only(left: 5),
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 5.0, horizontal: 8),
-                          child: Text(
-                            shelvesList[index].shelfName!,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 20),
-                          ))
-                    ],
-                  )))),
+                                        child: const Text(
+                                          "No books on shelf",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 20),
+                                        ))),
+                          ),
+                          Container(
+                              margin: const EdgeInsets.only(left: 5),
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 5.0, horizontal: 8),
+                              child: Text(
+                                shelvesList[index].shelfName!,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 20),
+                              ))
+                        ],
+                      )))),
     );
   }
 }

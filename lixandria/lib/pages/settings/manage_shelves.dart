@@ -22,7 +22,6 @@ class ShelfManager extends StatefulWidget {
 }
 
 class _ShelfManagerState extends State<ShelfManager> {
-  // final _formKey = GlobalKey<FormState>();
   List<Shelf> shelves = [];
   final formKey = GlobalKey<FormState>();
   @override
@@ -51,59 +50,66 @@ class _ShelfManagerState extends State<ShelfManager> {
         child: SizedBox(
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width,
-          child: ListView.separated(
-              itemCount: shelves.length,
-              separatorBuilder: (context, index) => Divider(
-                    color: Theme.of(context).primaryColor,
-                  ),
-              itemBuilder: (context, index) => Slidable(
-                    endActionPane: ActionPane(
-                      motion: const DrawerMotion(),
-                      children: [
-                        //* Delete Shelf
-                        SlidableAction(
-                          icon: Icons.delete_rounded,
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          onPressed: (context) {
-                            showDialog(
-                                context: context,
-                                builder: (context) => deleteShelfDialog(context,
-                                    shelfData: shelves[index],
-                                    onComplete: () => setState(
-                                        () => shelves = getShelfData())));
-                          },
-                        ),
+          child: (shelves.isEmpty)
+              ? const Center(
+                  child: Text(
+                  "No shelves in the database",
+                  style: TextStyle(fontSize: 20),
+                ))
+              : ListView.separated(
+                  itemCount: shelves.length,
+                  separatorBuilder: (context, index) => Divider(
+                        color: Theme.of(context).primaryColor,
+                      ),
+                  itemBuilder: (context, index) => Slidable(
+                        endActionPane: ActionPane(
+                          motion: const DrawerMotion(),
+                          children: [
+                            //* Delete Shelf
+                            SlidableAction(
+                              icon: Icons.delete_rounded,
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                              onPressed: (context) {
+                                showDialog(
+                                    context: context,
+                                    builder: (context) => deleteShelfDialog(
+                                        context,
+                                        shelfData: shelves[index],
+                                        onComplete: () => setState(
+                                            () => shelves = getShelfData())));
+                              },
+                            ),
 
-                        //* Edit Shelf
-                        SlidableAction(
-                          icon: Icons.edit_rounded,
-                          backgroundColor: Colors.yellow.shade800,
-                          foregroundColor: Colors.white,
-                          onPressed: (context) {
-                            showDialog(
-                                context: context,
-                                builder: (context) => addShelfDialog(
-                                    context, formKey,
-                                    shelfData: shelves[index],
-                                    isUpdate: true,
-                                    onComplete: () => setState(
-                                        () => shelves = getShelfData())));
-                          },
+                            //* Edit Shelf
+                            SlidableAction(
+                              icon: Icons.edit_rounded,
+                              backgroundColor: Colors.yellow.shade800,
+                              foregroundColor: Colors.white,
+                              onPressed: (context) {
+                                showDialog(
+                                    context: context,
+                                    builder: (context) => addShelfDialog(
+                                        context, formKey,
+                                        shelfData: shelves[index],
+                                        isUpdate: true,
+                                        onComplete: () => setState(
+                                            () => shelves = getShelfData())));
+                              },
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: ListTile(
-                        title: Text(
-                          shelves[index].shelfName!,
-                          style: const TextStyle(
-                              fontSize: 25, fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          "${shelves[index].booksOnShelf.length} book(s) on shelf",
-                          style: const TextStyle(fontSize: 18),
-                        )),
-                  )),
+                        child: ListTile(
+                            title: Text(
+                              shelves[index].shelfName!,
+                              style: const TextStyle(
+                                  fontSize: 25, fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Text(
+                              "${shelves[index].booksOnShelf.length} book(s) on shelf",
+                              style: const TextStyle(fontSize: 18),
+                            )),
+                      )),
         ),
       ),
       //* Add Shelf
@@ -173,7 +179,7 @@ addShelfDialog(context, formKey,
         onPressed: () {
           if (formKey.currentState!.validate()) {
             Shelf data = Shelf(shelfId,
-                shelfName: shelfNameTxt.text,
+                shelfName: shelfNameTxt.text.trim(),
                 booksOnShelf: (isUpdate) ? shelfData!.booksOnShelf : []);
             String dbResponse = ModelHelper.addNewShelf(data, isUpdate);
 

@@ -7,7 +7,6 @@ Last Edited On:  04/07/2023
  */
 
 import 'dart:convert';
-
 import 'package:lixandria/constants.dart';
 import 'package:realm/realm.dart';
 
@@ -122,8 +121,22 @@ class ModelHelper {
     final realmConfig =
         Configuration.local([Shelf.schema, Book.schema, Tag.schema]);
     var realm = Realm(realmConfig);
-
+    List<Tag> tagList = realm.all<Tag>().toList();
     final shelf = realm.all<Shelf>().query(r'shelfId == $0', [shelfId]);
+
+    for (var tag in data.tags) {
+      if (!tag.isInDatabase) {
+        Tag? db = tagList
+            .where((x) =>
+                x.tagDesc!.toLowerCase().trim() ==
+                tag.tagDesc!.toLowerCase().trim())
+            .firstOrNull;
+
+        if (db != null) {
+          tag.tagId = db.tagId;
+        }
+      }
+    }
 
     realm.write(() {
       realm.add(data, update: true);
@@ -337,9 +350,9 @@ class ModelHelper {
 
   static Book generateEmptyBook() {
     return Book(ObjectId().toString(),
-        title: "",
+        title: "Unknown",
         subTitle: "",
-        author: "",
+        author: "Unknown",
         publisher: "",
         description: "",
         userNotes: "",
@@ -348,7 +361,7 @@ class ModelHelper {
         coverImage: "",
         isRead: false,
         isbnCode: "",
-        ownershipStatus: "",
+        ownershipStatus: OWNERSHIP_OWNED,
         seriesNumber: 0,
         tags: []);
   }

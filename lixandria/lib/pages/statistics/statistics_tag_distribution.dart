@@ -60,13 +60,18 @@ class _TagWordcloudState extends State<TagWordcloud> {
                 height: MediaQuery.of(context).size.height / 1.5,
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: FittedBox(
-                    child: Scatter(
-                      delegate: ArchimedeanSpiralScatterDelegate(ratio: ratio),
-                      children: List.generate(wordList.length,
-                          (index) => ScatterItem(wordList[index], index)),
-                    ),
-                  ),
+                  child: (wordList.isEmpty)
+                      ? const Center(
+                          child: Text("No data available",
+                              style: TextStyle(fontSize: 20)))
+                      : FittedBox(
+                          child: Scatter(
+                            delegate:
+                                ArchimedeanSpiralScatterDelegate(ratio: ratio),
+                            children: List.generate(wordList.length,
+                                (index) => ScatterItem(wordList[index], index)),
+                          ),
+                        ),
                 ),
               )
             ]));

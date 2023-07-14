@@ -63,26 +63,48 @@ class _BooksByShelvesState extends State<BooksByShelves> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            const SizedBox(
+              height: 15,
+            ),
             const Text(
               "Books by Shelves",
               textAlign: TextAlign.center,
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
             ),
             const SizedBox(
-              height: 15,
+              height: 25,
             ),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Container(
-                padding: const EdgeInsets.only(top: 15),
-                width:
-                    shelfData.length * (MediaQuery.of(context).size.width / 4),
-                height: MediaQuery.of(context).size.height / 1.5,
-                child: BarChart(mainBarData()),
-              ),
-            ),
+            (shelfData.isEmpty)
+                ? Container(
+                    height: MediaQuery.of(context).size.height / 1.5,
+                    padding: const EdgeInsets.only(top: 15),
+                    decoration: BoxDecoration(
+                        border: Border.all(width: 2),
+                        borderRadius: BorderRadius.circular(15),
+                        color: Colors.white),
+                    child: const Center(
+                      child: Text(
+                        "No data available",
+                        style: TextStyle(fontSize: 20),
+                      ),
+                    ))
+                : SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Container(
+                      padding: const EdgeInsets.only(top: 15),
+                      decoration: BoxDecoration(
+                          border: Border.all(width: 2),
+                          borderRadius: BorderRadius.circular(15)),
+                      width: (shelfData.length < 4)
+                          ? MediaQuery.of(context).size.width * 0.95
+                          : shelfData.length *
+                              (MediaQuery.of(context).size.width / 4),
+                      height: MediaQuery.of(context).size.height / 1.5,
+                      child: BarChart(mainBarData()),
+                    ),
+                  ),
             const SizedBox(
-              height: 80,
+              height: 60,
             )
           ]),
     );

@@ -43,6 +43,10 @@ class MyApp extends StatelessWidget {
         title: 'Lixandria',
         theme: ThemeData(
           fontFamily: GoogleFonts.karla().fontFamily,
+          textTheme: Theme.of(context).textTheme.apply(
+                fontSizeFactor: 1.1,
+                fontSizeDelta: 2.0,
+              ),
           scaffoldBackgroundColor: const Color(0xffE5D9B6),
           primaryColor: const Color(0xff5F8D4E),
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),

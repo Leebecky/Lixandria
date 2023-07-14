@@ -33,22 +33,26 @@ class _BooksByOwnershipState extends State<BooksByOwnership> {
 
   final List<String> ownershipSet = OWNERSHIP_SET;
   List<PieData> dataset = [];
+  int totalBooks = 0;
 
   @override
   void initState() {
     super.initState();
     List<Book> bookList = ModelHelper.getAllBooks();
+    if (bookList.isNotEmpty) {
+      for (int i = 0; i < ownershipSet.length; i++) {
+        List<Book?> ownershipBooks = bookList
+            .where((x) => x.ownershipStatus == ownershipSet[i])
+            .toList();
+        int val = ownershipBooks.length;
 
-    for (int i = 0; i < ownershipSet.length; i++) {
-      List<Book?> list =
-          bookList.where((x) => x.ownershipStatus == ownershipSet[i]).toList();
-      int val = list.length;
-
-      dataset.add(PieData(
-          sliceColour: colourSet[i],
-          sliceValue: val,
-          slicePercentage: ((val / bookList.length) * 100).toStringAsFixed(2),
-          sliceLabel: ownershipSet[i]));
+        dataset.add(PieData(
+            sliceColour: colourSet[i],
+            sliceValue: val,
+            slicePercentage: ((val / bookList.length) * 100).toStringAsFixed(2),
+            sliceLabel: ownershipSet[i]));
+      }
+      totalBooks = bookList.length;
     }
   }
 
@@ -71,58 +75,75 @@ class _BooksByOwnershipState extends State<BooksByOwnership> {
             ),
             SizedBox(
               height: MediaQuery.of(context).size.height / 1.5,
-              child: Stack(children: [
-                LayoutBuilder(builder: (context, constraints) {
-                  final radius = constraints.biggest.shortestSide / 2.5;
-                  return PieChart(
-                    PieChartData(
-                      pieTouchData: PieTouchData(
-                        touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                          setState(() {
-                            if (!event.isInterestedForInteractions ||
-                                pieTouchResponse == null ||
-                                pieTouchResponse.touchedSection == null) {
-                              touchedIndex = -1;
-                              return;
-                            }
-                            touchedIndex = pieTouchResponse
-                                .touchedSection!.touchedSectionIndex;
-                          });
-                        },
+              child: (dataset.isEmpty)
+                  ? Container(
+                      height: MediaQuery.of(context).size.height / 1.5,
+                      padding: const EdgeInsets.only(top: 15),
+                      decoration: BoxDecoration(
+                          border: Border.all(width: 2),
+                          borderRadius: BorderRadius.circular(15),
+                          color: Colors.white),
+                      child: const Center(
+                        child: Text(
+                          "No data available",
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      ))
+                  : Stack(children: [
+                      LayoutBuilder(builder: (context, constraints) {
+                        final radius = constraints.biggest.shortestSide / 2.5;
+                        return PieChart(
+                          PieChartData(
+                            pieTouchData: PieTouchData(
+                              touchCallback:
+                                  (FlTouchEvent event, pieTouchResponse) {
+                                setState(() {
+                                  if (!event.isInterestedForInteractions ||
+                                      pieTouchResponse == null ||
+                                      pieTouchResponse.touchedSection == null) {
+                                    touchedIndex = -1;
+                                    return;
+                                  }
+                                  touchedIndex = pieTouchResponse
+                                      .touchedSection!.touchedSectionIndex;
+                                });
+                              },
+                            ),
+                            borderData: FlBorderData(
+                              show: false,
+                            ),
+                            sectionsSpace: 0,
+                            centerSpaceRadius: 0,
+                            sections: showingSections(radius, totalBooks),
+                          ),
+                        );
+                      }),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: List.generate(
+                                dataset.length,
+                                (index) => Indicator(
+                                    legendText: dataset[index].pieSliceLabel,
+                                    iconColour: dataset[index].pieSliceColour))
+                            .toList(),
                       ),
-                      borderData: FlBorderData(
-                        show: false,
-                      ),
-                      sectionsSpace: 0,
-                      centerSpaceRadius: 0,
-                      sections: showingSections(radius),
-                    ),
-                  );
-                }),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(
-                      dataset.length,
-                      (index) => Indicator(
-                          legendText: dataset[index].pieSliceLabel,
-                          iconColour: dataset[index].pieSliceColour)).toList(),
-                ),
-              ]),
+                    ]),
             )
           ]),
     );
   }
 
-  List<PieChartSectionData> showingSections(radius) {
+  List<PieChartSectionData> showingSections(radius, int totalBooks) {
+    const shadows = [Shadow(color: Colors.black, blurRadius: 2)];
+
     return List.generate(dataset.length, (i) {
       final isTouched = i == touchedIndex;
       final fontSize = isTouched ? 25.0 : 16.0;
       final sliceRadius = isTouched ? radius + 10 : radius;
-      const shadows = [Shadow(color: Colors.black, blurRadius: 2)];
 
       return PieChartSectionData(
         color: dataset[i].pieSliceColour,
-        // value: 15,
+        value: (dataset[i].pieSliceValue / totalBooks) * 360,
         title:
             "${dataset[i].pieSlicePercentage}%\n(${dataset[i].pieSliceValue})",
         radius: sliceRadius,

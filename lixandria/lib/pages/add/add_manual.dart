@@ -86,7 +86,9 @@ class _AddManualState extends State<AddManual> {
       _txtIsbnCode.text = widget.bookRecord!.isbnCode!;
       _isRead = widget.bookRecord!.isRead;
       shelf = widget.shelfId!;
-      ownershipSelection = widget.bookRecord!.ownershipStatus!;
+      ownershipSelection = (widget.bookRecord!.ownershipStatus! == "")
+          ? OWNERSHIP_OWNED
+          : widget.bookRecord!.ownershipStatus!;
       _bookRating = widget.bookRecord!.bookRating!;
       _coverImage = widget.bookRecord!.coverImage;
       _bookTags = widget.bookRecord!.tags;
@@ -240,19 +242,19 @@ class _AddManualState extends State<AddManual> {
                       return "Please select a valid shelf!";
                     }
                     return null;
-                  }, onChangeFun: (String? val) {
+                  }, onChangeFun: (String? val) async {
                     if (val == "-1") {
-                      showDialog(
+                      String newShelf = await showDialog(
                           context: context,
                           builder: (context) => addShelfDialog(
-                              context, _shelfFormKey,
-                              onComplete: () => setState(() {
-                                    shelfDropdown =
-                                        generateShelfDropdown(context);
-                                    shelf =
-                                        shelfDropdown[shelfDropdown.length - 1]
-                                            .value!;
-                                  })));
+                                context,
+                                _shelfFormKey,
+                              ));
+
+                      setState(() {
+                        shelfDropdown = generateShelfDropdown(context);
+                        shelf = newShelf;
+                      });
                     } else {
                       setState(() {
                         shelf = val!;
@@ -598,7 +600,7 @@ class _AddManualState extends State<AddManual> {
   }
 }
 
-addShelfDialog(context, formKey, {onComplete}) {
+addShelfDialog(context, formKey) {
   final shelfNameTxt = TextEditingController()..text = "";
   String shelfId = ObjectId().toString();
 
@@ -635,15 +637,13 @@ addShelfDialog(context, formKey, {onComplete}) {
             onPressed: () {
               if (formKey.currentState!.validate()) {
                 Shelf data = Shelf(shelfId,
-                    shelfName: shelfNameTxt.text, booksOnShelf: []);
+                    shelfName: shelfNameTxt.text.trim(), booksOnShelf: []);
                 String dbResponse = ModelHelper.addNewShelf(data, false);
-
-                onComplete();
 
                 String msg =
                     (dbResponse == "Success") ? "Shelf added" : dbResponse;
 
-                Navigator.pop(context, "Cancel");
+                Navigator.pop(context, data.shelfId);
 
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: Text(msg),
@@ -696,7 +696,7 @@ Widget addTagDialog(context, formKey, {onComplete}) {
               if (formKey.currentState!.validate()) {
                 Tag data = Tag(
                   tagId,
-                  tagDesc: tagNameTxt.text,
+                  tagDesc: tagNameTxt.text.trim(),
                 );
                 String dbResponse = ModelHelper.addNewTag(data, false);
 

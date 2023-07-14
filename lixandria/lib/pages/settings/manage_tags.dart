@@ -51,52 +51,60 @@ class _TagManagerState extends State<TagManager> {
           child: SizedBox(
             height: MediaQuery.of(context).size.height,
             width: MediaQuery.of(context).size.width,
-            child: ListView.separated(
-                itemCount: tags.length,
-                separatorBuilder: (context, index) => Divider(
-                      color: Theme.of(context).primaryColor,
-                    ),
-                itemBuilder: (context, index) => Slidable(
-                      endActionPane:
-                          ActionPane(motion: const DrawerMotion(), children: [
-                        //* Delete Tag
-                        SlidableAction(
-                          icon: Icons.delete_rounded,
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          onPressed: (context) {
-                            showDialog(
-                                context: context,
-                                builder: (context) => deleteTagDialog(context,
-                                    tagData: tags[index],
-                                    onComplete: () =>
-                                        setState(() => tags = getTagData())));
-                          },
+            child: (tags.isEmpty)
+                ? const Center(
+                    child: Text(
+                    "No tags in the database",
+                    style: TextStyle(fontSize: 20),
+                  ))
+                : ListView.separated(
+                    itemCount: tags.length,
+                    separatorBuilder: (context, index) => Divider(
+                          color: Theme.of(context).primaryColor,
                         ),
+                    itemBuilder: (context, index) => Slidable(
+                          endActionPane: ActionPane(
+                              motion: const DrawerMotion(),
+                              children: [
+                                //* Delete Tag
+                                SlidableAction(
+                                  icon: Icons.delete_rounded,
+                                  backgroundColor: Colors.red,
+                                  foregroundColor: Colors.white,
+                                  onPressed: (context) {
+                                    showDialog(
+                                        context: context,
+                                        builder: (context) => deleteTagDialog(
+                                            context,
+                                            tagData: tags[index],
+                                            onComplete: () => setState(
+                                                () => tags = getTagData())));
+                                  },
+                                ),
 
-                        //* Edit Tag
-                        SlidableAction(
-                            icon: Icons.edit_rounded,
-                            backgroundColor: Colors.yellow.shade800,
-                            foregroundColor: Colors.white,
-                            onPressed: (context) {
-                              showDialog(
-                                  context: context,
-                                  builder: (context) => addTagDialog(
-                                      context, formKey,
-                                      tagData: tags[index],
-                                      isUpdate: true,
-                                      onComplete: () =>
-                                          setState(() => tags = getTagData())));
-                            }),
-                      ]),
-                      child: ListTile(
-                          title: Text(
-                        tags[index].tagDesc!,
-                        style: const TextStyle(
-                            fontSize: 25, fontWeight: FontWeight.bold),
-                      )),
-                    )),
+                                //* Edit Tag
+                                SlidableAction(
+                                    icon: Icons.edit_rounded,
+                                    backgroundColor: Colors.yellow.shade800,
+                                    foregroundColor: Colors.white,
+                                    onPressed: (context) {
+                                      showDialog(
+                                          context: context,
+                                          builder: (context) => addTagDialog(
+                                              context, formKey,
+                                              tagData: tags[index],
+                                              isUpdate: true,
+                                              onComplete: () => setState(
+                                                  () => tags = getTagData())));
+                                    }),
+                              ]),
+                          child: ListTile(
+                              title: Text(
+                            tags[index].tagDesc!,
+                            style: const TextStyle(
+                                fontSize: 25, fontWeight: FontWeight.bold),
+                          )),
+                        )),
           )),
       //* Add Tag
       persistentFooterButtons: [
@@ -166,7 +174,7 @@ addTagDialog(context, formKey,
           if (formKey.currentState!.validate()) {
             Tag data = Tag(
               tagId,
-              tagDesc: tagNameTxt.text,
+              tagDesc: tagNameTxt.text.trim(),
             );
             String dbResponse = ModelHelper.addNewTag(data, isUpdate);
 

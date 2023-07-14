@@ -163,25 +163,22 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
                                         return "Please select a valid shelf!";
                                       }
                                       return null;
-                                    }, onChangeFun: (String? val) {
+                                    }, onChangeFun: (String? val) async {
                                       if (val == "-1") {
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) => addShelfDialog(
-                                            context,
-                                            _shelfFormKey,
-                                            onComplete: () => setState(() {
-                                              shelfDropdown =
-                                                  generateShelfDropdown(
-                                                      context);
-                                              shelfSelection[index.toString()] =
-                                                  shelfDropdown[
-                                                          shelfDropdown.length -
-                                                              1]
-                                                      .value!;
-                                            }),
-                                          ),
-                                        );
+                                        String newShelf = await showDialog(
+                                            context: context,
+                                            builder: (context) =>
+                                                addShelfDialog(
+                                                  context,
+                                                  _shelfFormKey,
+                                                ));
+
+                                        setState(() {
+                                          shelfDropdown =
+                                              generateShelfDropdown(context);
+                                          shelfSelection[index.toString()] =
+                                              newShelf;
+                                        });
                                       } else {
                                         setState(() {
                                           shelfSelection[index.toString()] =
@@ -219,6 +216,8 @@ class _SpineBookDisplayState extends State<SpineBookDisplay> {
                                   snapshot.data![index]![
                                           bookSelection[index]!] =
                                       (updatedData["book"] as Book);
+                                  shelfDropdown =
+                                      generateShelfDropdown(context);
                                   shelfSelection[index.toString()] =
                                       updatedData["shelf"];
                                 });
